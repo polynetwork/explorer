@@ -1,0 +1,67 @@
+{
+  "redis": {
+    "addr": "localhost:6379",
+    "proto": "tcp",
+    "pool_size": 50,
+    "min_idle_conns": 10,
+    "dial_timeout": 2,
+    "read_timeout": 2,
+    "write_timeout": 2,
+    "idle_timeout": 10,
+    "expiration": 60
+  },
+  "mysql": {
+    "url": "127.0.0.1:3306",
+    "user": "root",
+    "pwd": "root",
+    "dbName": "cross_chain_explorer"
+  },
+  "server": {
+    "rest_port": 30334,
+    "version": "1.0.0",
+    "http_max_connections": 10000,
+    "master": 1,
+    "http_cert_path": "",
+    "http_key_path": "http_key_path"
+  },
+  "neo": {
+    "name": "neo",
+    "chainId": 4,
+    "rawurl": ["http://127.0.0.1:8000","http://seed9.ngd.network:11332"],
+    "block_duration": 1
+  },
+  "ontology": {
+    "name": "ontology",
+    "chainId": 3,
+    "rawurl": ["http://127.0.0.1:8000","http://dappnode2.ont.io:20336"],
+    "block_duration": 1
+  },
+  "ethereum": {
+    "name": "eth",
+    "chainId": 2,
+    "rawurl": ["http://127.0.0.1:8000", "http://onto-eth.ont.io:10331"],
+    "block_duration": 1,
+    "proxy": "a4a0919ba5a2a89cb2eb1cb4018a16841b2e943f",
+    "btcx": "92705a16815a3d1aec3ce9cc273c5aa302961fcc"
+  },
+  "alliance": {
+    "name": "poly",
+    "chainId": 0,
+    "rawurl": ["http://127.0.0.1:8000", "http://13.92.155.62:20336"],
+    "block_duration": 1
+  },
+  "btc": {
+    "name": "btc",
+    "chainId": 1,
+    "user": ["omnicorerpc", "omnicorerpc"],
+    "passwd": ["EzriglUqnFC!", "EzriglUqnFC!"],
+    "rawurl": ["http://127.0.0.1:8000", "http://18.140.187.37:18332"],
+    "block_duration": 1
+  },
+  "cosmos": {
+    "name": "switcheo",
+    "chainId": 5,
+    "rawurl": ["http://127.0.0.1:8000", "http://54.255.5.46:26657"],
+    "block_duration": 1
+  }
+}
