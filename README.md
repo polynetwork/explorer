@@ -158,6 +158,17 @@ CREATE TABLE `tchain_transfer` (
 以下为跨链浏览器的所有配置信息，主要包括redis，mysql，server，ontology，btc，eth等服务运行需要的配置信息，在运行项目前应根据需要修改相关配置。
  ```json
 {
+  "redis": {
+    "addr": "localhost:6379",
+    "proto": "tcp",
+    "pool_size": 50,
+    "min_idle_conns": 10,
+    "dial_timeout": 2,
+    "read_timeout": 2,
+    "write_timeout": 2,
+    "idle_timeout": 10,
+    "expiration": 60
+  },
   "mysql": {
     "url": "127.0.0.1:3306",
     "user": "root",
