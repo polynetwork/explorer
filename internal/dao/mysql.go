@@ -21,33 +21,34 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/polynetwork/explorer/internal/common"
+	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
 )
 
 const (
 	_insertTChainTx                 = "insert into tchain_tx(chain_id, txhash, state, tt, fee, height, fchain, contract, rtxhash) values (?,?,?,?,?,?,?,?,?)"
-	_insertTChainTransfer          = "insert into tchain_transfer(txhash, asset, xfrom, xto, amount) values(?,?,?,?,?)"
+	_insertTChainTransfer          = "insert into tchain_transfer(txhash, chain_id, tt, asset, xfrom, xto, amount) values(?,?,?,?,?,?,?)"
 	_insertFChainTx                 = "insert into fchain_tx(chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam) values (?,?,?,?,?,?,?,?,?,?,?)"
-	_insertFChainTransfer          = "insert into fchain_transfer(txhash, asset, xfrom, xto, amount, tochainid, toasset, touser) values (?,?,?,?,?,?,?,?)"
+	_insertFChainTransfer          = "insert into fchain_transfer(txhash, chain_id, tt, asset, xfrom, xto, amount, tochainid, toasset, touser) values (?,?,?,?,?,?,?,?,?,?)"
 	_insertMChainTx                 = "insert into mchain_tx(chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey) values (?,?,?,?,?,?,?,?,?,?)"
 	_selectMChainTxCount            = "select count(*) from mchain_tx"
-	_selectMChainTxByLimit          = "select A.chain_id, A.txhash, case when B.txhash is null OR C.txhash is null THEN 0 ELSE 1 END as state, A.tt, A.fee, A.height, A.fchain, A.tchain from mchain_tx A left join tchain_tx B on A.txhash = B.rtxhash left join fchain_tx C on A.ftxhash = C.txhash order by A.height desc limit ?,?;"
+	//_selectMChainTxByLimit          = "select A.chain_id, A.txhash, case when B.txhash is null OR C.txhash is null THEN 0 ELSE 1 END as state, A.tt, A.fee, A.height, A.fchain, A.tchain from mchain_tx A left join tchain_tx B on A.txhash = B.rtxhash left join fchain_tx C on A.ftxhash = C.txhash order by A.height desc limit ?,?;"
+	_selectMChainTxByLimit          = "select A.chain_id, A.txhash, case when B.txhash is null OR C.txhash is null THEN 0 ELSE 1 END as state, A.tt, A.fee, A.height, A.fchain, A.tchain from (select txhash,chain_id,tt,fee,height,fchain,tchain from mchain_tx order by height desc limit ?,?) A LEFT JOIN tchain_tx B ON A.txhash  = B.rtxhash LEFT JOIN fchain_tx C ON A.ftxhash = C.txhash"
 	_selectMChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey from mchain_tx where txhash = ?"
 	_selectMChainTxByFHash          = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey from mchain_tx where ftxhash = ?"
 	_selectFChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam from fchain_tx where case when chain_id = ? then xkey = ? else txhash = ? end"
-	_selectFChainTxByTime           = "select unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from fchain_tx where chain_id = ? and tt > ? and tt < ? group by chain_id,days order by days desc"
-	_selectFChainTransferByHash    = "select txhash, asset, xfrom, xto, amount, tochainid, toasset, touser from fchain_transfer where txhash = ?" // TODO
+	_selectFChainTxByTime           = "select chain_id, unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from fchain_tx where tt > ? and tt < ? group by chain_id, days order by chain_id, days desc"
+	_selectFChainTransferByHash    = "select txhash, asset, xfrom, xto, amount, tochainid, toasset, touser from fchain_transfer where txhash = ?"
 	_selectTChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, fchain, contract,rtxhash from tchain_tx where txhash = ?"
 	_selectTChainTxByMHash          = "select chain_id, txhash, state, tt, fee, height, fchain, contract,rtxhash from tchain_tx where rtxhash = ?"
-	_selectTChainTxByTime           = "select unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from tchain_tx where chain_id = ? and tt > ? and tt < ? group by chain_id,days order by days desc"
+	_selectTChainTxByTime           = "select chain_id, unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from tchain_tx where tt > ? and tt < ? group by chain_id, days order by chain_id, days desc"
 	_selectTChainTransferByHash    = "select txhash, asset, xfrom, xto, amount from tchain_transfer where txhash = ?"
-	_selectChainAddresses           = "select count(distinct a) from (select distinct xfrom as a from fchain_transfer aa left join fchain_tx bb on aa.txhash = bb.txhash where bb.chain_id = ? union all select distinct xto as a from tchain_transfer aa left join tchain_tx bb on aa.txhash = bb.txhash where bb.chain_id = ?) c"
-	_selectChainInfoById            = "select xname, id, url, xtype, height, txin, txout from chain_info where id = ?"
-	_selectAllChainInfos            = "select xname, id, url, xtype, height, txin, txout from chain_info order by id"
+	_selectChainAddresses           = "select chain_id, count(distinct addr) from (select chain_id,xfrom as addr from fchain_transfer union all select chain_id,xto as addr from tchain_transfer) c group by c.chain_id"
+	_selectAllChainInfos            = "select xname, id, xtype, height, txin, txout from chain_info order by id"
 	_selectContractById             = "select id, contract from chain_contract where id = ?"
 	_selectTokenById                = "select id, xtoken, hash, xname, xtype, xprecision, xdesc from chain_token where id = ?"
 	_selectTokenCount               = "select count(distinct xtoken) from chain_token"
-	_updateChainInfoById            = "update chain_info set xname = ?, url = ?, height = ?, txin = ?, txout = ? where id = ?"
+	_updateChainInfoById            = "update chain_info set xname = ?, height = ?, txin = ?, txout = ? where id = ?"
 	_selectAllianceTx               = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain,xkey from mchain_tx where (tchain = ? or fchain = ?) and height > ? order by height"
 	_selectBitcoinUnconfirmTx       = "select txhash from tchain_tx where chain_id = ? and tt = ?"
 	_updateBitcoinConfirmTx         = "update tchain_tx set tt = ?, height = ?, state = 1, fee = ? where txhash = ?"
@@ -58,6 +59,12 @@ const (
 	_selectAddressTxTotal           = "select sum(cnt) from (select count(*) as cnt from fchain_transfer a left join fchain_tx b on a.txhash = b.txhash where a.xfrom = ? and b.chain_id = ? union all select count(*) as cnt from tchain_transfer c left join tchain_tx d on c.txhash = d.txhash where c.xto = ? and d.chain_id = ?) t"
 	_insertPolyValidator            = "insert into poly_validators(height, validators) values(?,?)"
 	_selectPolyValidator            = "select height, validators from poly_validators order by height desc limit 1"
+	_insertAssetStatistic           = "insert into asset_statistic(xname, addressnum, amount,amount_btc, amount_usd, txnum, latestupdate) values (?,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE txnum=txnum"
+	_selectAssetAddressNum          =  "select token, count(distinct addr) as addrNum from (select B.xtoken as token, A.xfrom as addr from fchain_transfer as A inner join chain_token as B on A.asset = B.hash union all select D.xtoken as token, C.xto as addr from tchain_transfer as C inner join chain_token as D on C.asset = D.hash) E group by E.token"
+	_selectAssetTxInfo              =  "select B.xtoken, sum(amount), count(*) from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? group by B.xtoken"
+	_updateStatistic                =  "update asset_statistic set addressnum = ?, amount = amount + ?, amount_btc = amount_btc + ?, amount_usd = amount_usd + ?, txnum = txnum + ?, latestupdate = ? where xname = ? and latestupdate = ?"
+	_selectAssetStatistic           =  "select xname, addressnum, amount, amount_btc, amount_usd, txnum, latestupdate from asset_statistic where latestupdate < ? order by amount_usd desc"
+	_selectAssetHistory             =  "select sum(A.amount), count(*) from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? and B.xtoken = ? group by B.xtoken"
 )
 
 func (d *Dao) InsertTChainTx(t *model.TChainTx) (err error) {
@@ -87,7 +94,7 @@ func (d *Dao) TxInsertTChainTx(tx *sql.Tx, t *model.TChainTx) (err error) {
 	}
 	if t.Transfer != nil && t.Transfer.TxHash != "" {
 		transfer := t.Transfer
-		if _, err = tx.Exec(_insertTChainTransfer, transfer.TxHash, transfer.Asset, transfer.From, transfer.To, transfer.Amount); err != nil {
+		if _, err = tx.Exec(_insertTChainTransfer, transfer.TxHash, t.Chain, t.TT, transfer.Asset, transfer.From, transfer.To, transfer.Amount); err != nil {
 			return
 		}
 	}
@@ -100,7 +107,7 @@ func (d *Dao) TxInsertFChainTx(tx *sql.Tx, f *model.FChainTx) (err error) {
 	}
 	if f.Transfer != nil && f.Transfer.TxHash != "" {
 		transfer := f.Transfer
-		if _, err = tx.Exec(_insertFChainTransfer, transfer.TxHash,transfer.Asset,transfer.From,transfer.To,transfer.Amount,transfer.ToChain,transfer.ToAsset,transfer.ToUser); err != nil {
+		if _, err = tx.Exec(_insertFChainTransfer,transfer.TxHash,f.Chain, f.TT,transfer.Asset,transfer.From,transfer.To,transfer.Amount,transfer.ToChain,transfer.ToAsset,transfer.ToUser); err != nil {
 			return
 		}
 	}
@@ -114,17 +121,6 @@ func (d *Dao) TxInsertMChainTx(tx *sql.Tx, m *model.MChainTx) (err error) {
 	return
 }
 
-func (d *Dao) SelectChainInfoById(id uint32) (res *model.ChainInfo, err error) {
-	res = new(model.ChainInfo)
-	row := d.db.QueryRow(_selectChainInfoById, id)
-	if err = row.Scan(&res.Name, &res.Id, &res.Url, &res.XType, &res.Height, &res.In, &res.Out); err != nil {
-		if err == sql.ErrNoRows {
-			err = nil
-		}
-		res = nil
-	}
-	return
-}
 
 func (d *Dao) SelectAllChainInfos() (c []*model.ChainInfo, err error) {
 	var rows *sql.Rows
@@ -134,7 +130,7 @@ func (d *Dao) SelectAllChainInfos() (c []*model.ChainInfo, err error) {
 	defer rows.Close()
 	for rows.Next() {
 		r := new(model.ChainInfo)
-		if err = rows.Scan(&r.Name, &r.Id, &r.Url, &r.XType, &r.Height, &r.In, &r.Out); err != nil {
+		if err = rows.Scan(&r.Name, &r.Id, &r.XType, &r.Height, &r.In, &r.Out); err != nil {
 			c = nil
 			return
 		}
@@ -270,16 +266,16 @@ func (d *Dao) SelectFChainTxByHash(hash string, chain uint32) (res *model.FChain
 	return
 }
 
-func (d *Dao) SelectFChainTxByTime(chainId uint32, start uint32, end uint32) (res []*model.CrossChainTxStatus, err error) {
+func (d *Dao) SelectFChainTxByTime(start uint32, end uint32) (res []*model.CrossChainTxStatus, err error) {
 	var rows *sql.Rows
-	if rows, err  = d.db.Query(_selectFChainTxByTime, chainId, start, end); err != nil {
+	if rows, err  = d.db.Query(_selectFChainTxByTime, start, end); err != nil {
 		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		r := new(model.CrossChainTxStatus)
-		if err = rows.Scan(&r.TT, &r.TxNumber); err != nil {
+		if err = rows.Scan(&r.Id, &r.TT, &r.TxNumber); err != nil {
 			res = nil
 			return
 		}
@@ -337,16 +333,16 @@ func (d *Dao) SelectTChainTxByMHash(hash string) (res *model.TChainTx, err error
 	return
 }
 
-func (d *Dao) SelectTChainTxByTime(chainId uint32, start uint32, end uint32) (res []*model.CrossChainTxStatus, err error) {
+func (d *Dao) SelectTChainTxByTime(start uint32, end uint32) (res []*model.CrossChainTxStatus, err error) {
 	var rows *sql.Rows
-	if rows, err  = d.db.Query(_selectTChainTxByTime, chainId, start, end); err != nil {
+	if rows, err  = d.db.Query(_selectTChainTxByTime, start, end); err != nil {
 		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		r := new(model.CrossChainTxStatus)
-		if err = rows.Scan(&r.TT, &r.TxNumber); err != nil {
+		if err = rows.Scan(&r.Id, &r.TT, &r.TxNumber); err != nil {
 			res = nil
 			return
 		}
@@ -356,29 +352,29 @@ func (d *Dao) SelectTChainTxByTime(chainId uint32, start uint32, end uint32) (re
 	return
 }
 
-/*
-func (d *Dao) UpdateChainInfoById(c *model.ChainInfo) (err error) {
-	if _, err = d.db.Exec(_updateChainInfoById, c.Name, c.Url, c.Height, c.In, c.Out, c.Id); err != nil {
-		return
-	}
-	return
-}
-*/
 
 func (d *Dao) TxUpdateChainInfoById(tx *sql.Tx, c *model.ChainInfo) (err error) {
-	if _, err = tx.Exec(_updateChainInfoById, c.Name, c.Url, c.Height, c.In, c.Out, c.Id); err != nil {
+	if _, err = tx.Exec(_updateChainInfoById, c.Name, c.Height, c.In, c.Out, c.Id); err != nil {
 		return
 	}
 	return
 }
 
-func (d *Dao) SelectChainAddresses(chainId uint32) (uint32, error) {
-	row := d.db.QueryRow(_selectChainAddresses, chainId, chainId)
-	var counter uint32
-	if err := row.Scan(&counter); err != nil {
-		return 0, err
+func (d *Dao) SelectChainAddressNum() (res []*model.CrossChainAddressNum, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectChainAddresses); err != nil {
+		return
 	}
-	return counter, nil
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.CrossChainAddressNum)
+		if err = rows.Scan(&r.Id, &r.AddNum); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
 }
 
 /*
@@ -530,4 +526,94 @@ func (d *Dao) SelectPolyValidator() (validator []string, err error) {
 		return nil, err
 	}
 	return validator, nil
+}
+
+func (d *Dao) InsertAssetStatistic(name string) (err error) {
+	if _, err = d.db.Exec(_insertAssetStatistic, name); err != nil {
+		return
+	}
+	return
+}
+
+func (d *Dao) SelectAssetAddressNum()  (res []*model.AssetAddressNum, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAssetAddressNum); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.AssetAddressNum)
+		if err = rows.Scan(&r.Name, &r.AddNum); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectAssetTxInfo(start uint32, end uint32)  (res []*model.AssetTxInfo, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAssetTxInfo, start, end); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.AssetTxInfo)
+		if err = rows.Scan(&r.Name, &r.Amount, &r.TxNum); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) UpdateAssetStatistics(assetStatistics []*model.AssetStatistic, tt uint32) (err error) {
+	for _, statistic := range assetStatistics {
+		if statistic.LatestUpdate == 1 {
+			continue
+		}
+		err := d.UpdateAssetStatistic(statistic, tt)
+		if err != nil {
+			log.Errorf("UpdateAssetStatistic err: %s", err.Error())
+		}
+	}
+	return nil
+}
+
+func (d *Dao) UpdateAssetStatistic(assetStatistic *model.AssetStatistic, tt uint32) (err error) {
+	if _, err = d.db.Exec(_updateStatistic, assetStatistic.Addressnum, assetStatistic.Amount, assetStatistic.Amount_btc, assetStatistic.Amount_usd,assetStatistic.TxNum, tt, assetStatistic.Name, assetStatistic.LatestUpdate); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *Dao) SelectAssetStatistic(tt uint32) (res []*model.AssetStatistic, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAssetStatistic, tt); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.AssetStatistic)
+		if err = rows.Scan(&r.Name, &r.Addressnum, &r.Amount, &r.Amount_btc, &r.Amount_usd, &r.TxNum, &r.LatestUpdate); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectAssetHistory(start uint32, end uint32, name string)  (res *model.AssetTxInfo, err error) {
+	res = new(model.AssetTxInfo)
+	res.Name = name
+	row := d.db.QueryRow(_selectAssetHistory, start, end, name)
+	if err = row.Scan(&res.Amount, &res.TxNum); err != nil {
+		if err == sql.ErrNoRows {
+			err = nil
+		}
+	}
+	return
 }

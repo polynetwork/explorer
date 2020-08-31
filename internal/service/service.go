@@ -19,6 +19,7 @@ package service
 
 import (
 	"encoding/hex"
+	"fmt"
 	cosmos_types "github.com/cosmos/cosmos-sdk/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/joeqian10/neo-gogogo/helper"
@@ -32,6 +33,7 @@ import (
 	"github.com/polynetwork/explorer/internal/server/rpc/client"
 	ontcommon "github.com/ontio/ontology/common"
 	"github.com/shopspring/decimal"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -46,6 +48,7 @@ type Service struct {
 	bitcoinClient  *restclient.BTCTools
 	cosmosClient   *client.CosmosClient
 	chain          []*model.ChainInfo
+	tokens         []*model.CrossChainToken
 }
 
 func New(c *conf.Config) (s *Service) {
@@ -59,6 +62,7 @@ func New(c *conf.Config) (s *Service) {
 		bitcoinClient:  restclient.NewBtcTools(c),
 		cosmosClient:   client.NewCosmosClient(c),
 		chain: make([]*model.ChainInfo, 0),
+		tokens: make([]*model.CrossChainToken, 0),
 	}
 	return s
 }
@@ -74,40 +78,66 @@ func (s *Service) Close() {
 	s.ethClient.Close()
 }
 
-func (exp *Service) GetChainInfos() []*model.ChainInfo {
+func (exp *Service) GetChainInfos() ([]*model.ChainInfo,[]*model.CrossChainToken, error) {
 	// get all chains
 	chainInfos, err := exp.dao.SelectAllChainInfos()
 	if err != nil {
-		panic( err)
+		return nil, nil, err
 	}
 	if chainInfos == nil {
-		panic("GetExplorerInfo: can't get AllChainInfos")
+		return nil, nil, fmt.Errorf("GetExplorerInfo: can't get AllChainInfos")
 	}
 
 	// get all tokens and contracts
+	allTokens := make([]*model.ChainToken, 0)
 	for _, chainInfo := range chainInfos {
 		chainContracts, err := exp.dao.SelectContractById(chainInfo.Id)
 		if err != nil {
-			panic(err)
+			return nil, nil, err
 		}
 		chainInfo.Contracts = chainContracts
 
 		chainTokens, err := exp.dao.SelectTokenById(chainInfo.Id)
 		if err != nil {
-			panic(err)
+			return nil, nil, err
 		}
 		chainInfo.Tokens = chainTokens
+		allTokens = append(allTokens, chainTokens...)
 	}
-	return chainInfos
+	//
+	crosschainTokens := make([]*model.CrossChainToken, 0)
+	for _, token := range allTokens {
+		exist := false
+		for _, crosschainToken := range crosschainTokens {
+			if token.Token == crosschainToken.Name {
+				crosschainToken.Tokens = append(crosschainToken.Tokens, token)
+				exist = true
+				break
+			}
+		}
+		if exist == false {
+			crosschainToken := &model.CrossChainToken{
+				Name: token.Token,
+				Tokens: make([]*model.ChainToken ,0),
+			}
+			crosschainToken.Tokens = append(crosschainToken.Tokens, token)
+			crosschainTokens = append(crosschainTokens, crosschainToken)
+		}
+	}
+	return chainInfos, crosschainTokens, nil
 }
 
 func (exp *Service) Start(context *ctx.Context) {
 	exp.CheckChains(context)
-	t := time.NewTicker(10 * time.Second)
+	exp.Statistic()
+
+	t := time.NewTicker(60 * time.Second)
 	for {
 		select {
 		case <-t.C:
 			exp.CheckChains(context)
+			exp.Statistic()
+			exp.CheckLog()
 		case <-context.Context.Done():
 			log.Infof("stop service start routine!")
 			return
@@ -116,11 +146,32 @@ func (exp *Service) Start(context *ctx.Context) {
 }
 
 func (exp *Service) CheckChains(context *ctx.Context) {
-	chainInfoNew := exp.GetChainInfos()
+	chainInfoNew, crossChainTokenNew, err := exp.GetChainInfos()
+	if err != nil {
+		return
+	}
 	chainInfoOld := exp.chain
+	tokensOld := exp.tokens
 	exp.chain = chainInfoNew
+	exp.tokens = crossChainTokenNew
 	if exp.c.Server.Master == 0 {
 		return
+	}
+	for _, tokenNew := range crossChainTokenNew {
+		exist := false
+		for _, tokenOld := range tokensOld {
+			if tokenOld.Name == tokenNew.Name {
+				exist = true
+				break
+			}
+		}
+		if exist == true {
+			continue
+		}
+		err := exp.dao.InsertAssetStatistic(tokenNew.Name)
+		if err != nil {
+			log.Errorf("InsertAssetStatistic err: %s", err.Error())
+		}
 	}
 	for _, chainNew := range chainInfoNew {
 		exist := false
@@ -146,6 +197,22 @@ func (exp *Service) CheckChains(context *ctx.Context) {
 		} else if chainNew.Id == common.CHAIN_COSMOS {
 			go exp.LoadCosmosCrossTxFromChain(context)
 		}
+	}
+}
+
+func (exp *Service) Statistic() {
+	if exp.c.Server.Master == 0 {
+		return
+	}
+	exp.DoStatistic()
+}
+
+func (exp *Service) CheckLog() {
+	isNeedNewFile := log.CheckIfNeedNewFile()
+	if isNeedNewFile {
+		log.Infof("new log file!")
+		log.ClosePrintLog()
+		log.InitLog(int(conf.DefConfig.Server.LogLevel), "../log/")
 	}
 }
 
@@ -208,6 +275,17 @@ func (exp *Service) SearchToken(name string, chainId uint32) (*model.ChainToken)
 	return nil
 }
 
+func (exp *Service) GetTokenPrecision(name string) uint64 {
+	for _, chainInfo := range exp.chain {
+		for _, token := range chainInfo.Tokens {
+			if token.Token == name {
+				return token.Precision
+			}
+		}
+	}
+	return 0
+}
+
 func (exp *Service) Hash2Address(chainId uint32, value string) string {
 	if chainId == common.CHAIN_ETH {
 		addr := ethcommon.HexToAddress(value)
@@ -249,11 +327,25 @@ func (exp *Service) FormatFee(chain uint32, fee uint64) string {
 		precision_new := decimal.New(int64(1000000000000000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
 		return fee_new.Div(precision_new).String()
+	} else if chain == common.CHAIN_NEO {
+		precision_new := decimal.New(int64(100000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		fee := fee_new.Div(precision_new).BigInt().Int64()
+		return strconv.FormatInt(fee, 10)
+	} else if chain == common.CHAIN_COSMOS {
+		precision_new := decimal.New(int64(100000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		return fee_new.Div(precision_new).String()
 	} else {
 		precision_new := decimal.New(int64(1), 0)
 		fee_new := decimal.New(int64(fee), 0)
 		return fee_new.Div(precision_new).String()
 	}
+}
+
+func (exp *Service) Precent(a uint64, b uint64) string {
+	c := float64(a) / float64(b)
+	return fmt.Sprintf("%.2f%%", c * 100)
 }
 
 func (exp *Service) DayOfTime(t uint32) uint32 {

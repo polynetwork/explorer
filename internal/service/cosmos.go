@@ -120,7 +120,7 @@ func (srv *Service) saveCosmosCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Chai
 			fctx.Chain = srv.c.Cosmos.ChainId
 			fctx.TxHash = lockEvent.TxHash
 			fctx.State = 1
-			fctx.Fee = 0
+			fctx.Fee = lockEvent.Fee
 			fctx.TT = uint32(tt)
 			fctx.Height = chainInfo.Height
 			fctx.User = lockEvent.User
@@ -159,7 +159,7 @@ func (srv *Service) saveCosmosCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Chai
 			tctx.Chain = srv.c.Cosmos.ChainId
 			tctx.TxHash = unLockEvent.TxHash
 			tctx.State = 1
-			tctx.Fee = 0
+			tctx.Fee = unLockEvent.Fee
 			tctx.TT = uint32(tt)
 			tctx.Height = chainInfo.Height
 			tctx.FChain = unLockEvent.FChainId
@@ -220,7 +220,7 @@ func (srv *Service) getCosmosCCMLockEventByBlockNumber(height uint64) ([]*model.
 							Contract: string(e.Attributes[4].Value),
 							Height: height,
 							Value: value,
-							Fee: uint64(tx.TxResult.GasUsed),
+							Fee: client.GetGas(tx.Tx),
 						})
 					} else if e.Type == _cosmos_lock {
 						tchainId, _ := strconv.ParseUint(string(e.Attributes[1].Value), 10, 32)
@@ -273,7 +273,7 @@ func (srv *Service) getCosmosCCMUnlockEventByBlockNumber(height uint64) ([]*mode
 							FChainId: uint32(fchainId),
 							Contract: string(e.Attributes[3].Value),
 							Height: height,
-							Fee: uint64(tx.TxResult.GasUsed),
+							Fee: client.GetGas(tx.Tx),
 						})
 					} else if e.Type == _cosmos_unlock {
 						amount, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 64)

@@ -43,12 +43,12 @@ var (
 
 func init() {
 	//flag.StringVar(&confPath, "conf", "", "set the config file path")
-	log.InitLog(1, "../log/")
 	err := conf.DefConfig.Init("../config/config.json")
 	if err != nil {
 		log.Error(err)
 		return
 	}
+	log.InitLog(int(conf.DefConfig.Server.LogLevel), "../log/")
 }
 func main() {
 	context := ctx.New().WithCancel()

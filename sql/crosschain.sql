@@ -5,7 +5,6 @@ DROP TABLE IF EXISTS `chain_info`;
 CREATE TABLE `chain_info` (
  `xname` VARCHAR(32) NOT NULL COMMENT '链名称',
  `id`  INT(4) NOT NULL COMMENT '链id',
- `url` VARCHAR(256) NOT NULL COMMENT '访问链的url',
  `xtype` INT(4) NOT NULL COMMENT '链类型',
  `height` INT(12) NOT NULL COMMENT '解析的区块高度',
  `txin` 	INT(12) NOT NULL COMMENT '链的入金数量',
@@ -30,17 +29,17 @@ CREATE TABLE `chain_token` (
   `xdesc` VARCHAR(1024) COMMENT 'token描述'
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
-INSERT INTO `chain_info`(`xname`,`id`,`url`,`xtype`,`height`,`txin`,`txout`) VALUES("poly",0,"http://40.115.182.238:20336",0,4600,0,0);
-INSERT INTO `chain_info`(`xname`,`id`,`url`,`xtype`,`height`,`txin`,`txout`) VALUES("btc",1,"http://172.168.3.10:20336",1,0,0,0);
-INSERT INTO `chain_info`(`xname`,`id`,`url`,`xtype`,`height`,`txin`,`txout`) VALUES("eth",2,"http://18.139.17.85:10331",2,8430740,0,0);
-INSERT INTO `chain_info`(`xname`,`id`,`url`,`xtype`,`height`,`txin`,`txout`) VALUES("ontology",3,"http://polaris4.ont.io:20336",3,13365530,0,0);
-INSERT INTO `chain_info`(`xname`,`id`,`url`,`xtype`,`height`,`txin`,`txout`) VALUES("neo",4,"http://seed1.ngd.network:20332",4,6217881,0,0);
-INSERT INTO `chain_info`(`xname`,`id`,`url`,`xtype`,`height`,`txin`,`txout`) VALUES("cosmos",5,"http://40.115.182.238:26657",5,4050,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("poly",0,0,22732,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("btc",1,1,0,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("eth",2,2,10650091,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("ontology",3,3,9300490,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("neo",4,4,6023777,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("switcheo",5,5,202650,0,0);
 
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(0, "0300000000000000000000000000000000000000");
-INSERT INTO `chain_contract`(`id`,`contract`) VALUES(2, "570230e8fde617516b4f8a208864eada69349438");
+INSERT INTO `chain_contract`(`id`,`contract`) VALUES(2, "838bf9e95cb12dd76a54c9f9d2e3082eaf928270");
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(3, "0900000000000000000000000000000000000000");
-INSERT INTO `chain_contract`(`id`,`contract`) VALUES(4, "978286951e0011221de3fffe6a9e6dd160925837");
+INSERT INTO `chain_contract`(`id`,`contract`) VALUES(4, "82a3401fb9a60db42c6fa2ea2b6d62e872d6257f");
 
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(1, "btc", "0000000000000000000000000000000000000011", "btc", "BTC", "100000000","btc");
@@ -100,7 +99,8 @@ CREATE TABLE `mchain_tx` (
  `tchain` INT(4) NOT NULL COMMENT '目标链的id',
  `xkey` VARCHAR(8192) COMMENT '比特币交易',
  PRIMARY KEY (`txhash`),
- UNIQUE (`ftxhash`)
+ UNIQUE (`ftxhash`),
+ INDEX (`height`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `fchain_tx`;
@@ -116,12 +116,15 @@ CREATE TABLE `fchain_tx` (
  `contract` VARCHAR(128) NOT NULL COMMENT '执行的合约',
  `xkey` VARCHAR(8192) NOT NULL COMMENT '目标链的参数',
  `xparam` VARCHAR(8192) NOT NULL COMMENT '合约参数',
- PRIMARY KEY (`txhash`)
+ PRIMARY KEY (`txhash`),
+ INDEX (`tt`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `fchain_transfer`;
 CREATE TABLE `fchain_transfer` (
   `txhash`  VARCHAR(128) NOT NULL COMMENT '交易hash',
+  `chain_id` INT(4) NOT NULL COMMENT '链ID',
+  `tt` INT(4) NOT NULL COMMENT '交易时间',
   `asset` VARCHAR(128) NOT NULL COMMENT '资产hash',
   `xfrom` VARCHAR(128) NOT NULL COMMENT '发送用户',
   `xto` VARCHAR(128) NOT NULL COMMENT '接受用户',
@@ -129,7 +132,8 @@ CREATE TABLE `fchain_transfer` (
   `tochainid` INT(4) NOT NULL COMMENT '目标链的id',
   `toasset` VARCHAR(1024) NOT NULL COMMENT '目标链的资产hash',
   `touser` VARCHAR(128) NOT NULL COMMENT '目标链的接受用户',
-  PRIMARY KEY (`txhash`)
+  PRIMARY KEY (`txhash`),
+  INDEX (`asset`, `tt`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `tchain_tx`;
@@ -144,15 +148,33 @@ CREATE TABLE `tchain_tx` (
  `contract` VARCHAR(128) NOT NULL COMMENT '执行的合约',
  `rtxhash` VARCHAR(128) NOT NULL COMMENT '中继链的交易hash',
  PRIMARY KEY (`txhash`),
- UNIQUE (`rtxhash`)
+ UNIQUE (`rtxhash`),
+ INDEX (`tt`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `tchain_transfer`;
 CREATE TABLE `tchain_transfer` (
   `txhash`  VARCHAR(128) NOT NULL COMMENT '交易hash',
+  `chain_id` INT(4) NOT NULL COMMENT '链ID',
+  `tt` INT(4) NOT NULL COMMENT '交易时间',
   `asset` VARCHAR(128) NOT NULL COMMENT '资产hash',
   `xfrom` VARCHAR(128) NOT NULL COMMENT '发送用户',
   `xto` VARCHAR(128) NOT NULL COMMENT '接受用户',
   `amount` BIGINT(8) NOT NULL COMMENT '收到的金额',
   PRIMARY KEY (`txhash`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `asset_statistic`;
+CREATE TABLE `asset_statistic` (
+  `xname` VARCHAR(16)  COMMENT '资产名称',
+  `addressnum`   INT(4) NOT NULL COMMENT '资产的总地址数',
+  `amount`       BIGINT(8)  NOT NULL COMMENT '资产的总价值',
+  `amount_btc`  BIGINT(8)  NOT NULL COMMENT '资产的总价值',
+  `amount_usd`  BIGINT(8)  NOT NULL COMMENT '资产的总价值',
+  `txnum`       INT(4) NOT NULL COMMENT '总的交易个数',
+  `latestupdate` INT(4)  NOT NULL COMMENT '统计数据的时间点',
+  PRIMARY KEY (`xname`)
+)ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+

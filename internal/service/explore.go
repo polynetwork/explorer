@@ -19,6 +19,7 @@ package service
 
 import (
 	"encoding/json"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/polynetwork/explorer/internal/common"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
@@ -31,80 +32,50 @@ import (
 func (exp *Service) GetExplorerInfo(start uint32, end uint32) (int64, string) {
 	log.Infof("GetExplorerInfo, start: %d, end: %d", start, end)
 	// get all chains
-	chainInfos, err := exp.dao.SelectAllChainInfos()
+	chainInfoResps := exp.outputChainInfos(exp.chain)
+	crosschainTokens := exp.outputCrossChainTokens(exp.tokens)
+	// get status
+	allFchainStatus, err := exp.dao.SelectFChainTxByTime(start, end)
 	if err != nil {
-		log.Errorf("GetExplorerInfo: SelectAllChainInfos %s", err)
-		return myerror.DB_CONNECTTION_FAILED, ""
-	}
-	if chainInfos == nil {
-		log.Errorf("GetExplorerInfo: can't get AllChainInfos")
+		log.Errorf("GetExplorerInfo: SelectFChainTxByTime %s", err)
 		return myerror.DB_LOADDATA_FAILED, ""
 	}
-	chainInfoResps := exp.outputChainInfos(chainInfos)
-
-	// get all tokens and contracts
-	allTokens := make([]*model.ChainTokenResp, 0)
+	allTchainStatus, err := exp.dao.SelectTChainTxByTime(start, end)
+	if err != nil {
+		log.Errorf("GetExplorerInfo: SelectTChainTxByTime %s", err)
+		return myerror.DB_LOADDATA_FAILED, ""
+	}
+	allChainAddressNum, err := exp.dao.SelectChainAddressNum()
+	if err != nil {
+		log.Errorf("GetExplorerInfo: SelectChainAddresses %s", err)
+		return myerror.DB_LOADDATA_FAILED, ""
+	}
 	for _, chainInfo := range chainInfoResps {
-		chainContracts, err := exp.dao.SelectContractById(chainInfo.Id)
-		if err != nil {
-			log.Errorf("GetExplorerInfo: SelectContractById %s", err)
-			return myerror.DB_CONNECTTION_FAILED, ""
+		fchainStatus := make([]*model.CrossChainTxStatus,0)
+		for _, item := range allFchainStatus {
+			if item.Id == chainInfo.Id {
+				fchainStatus = append(fchainStatus, item)
+			}
 		}
-		chainInfo.Contracts = exp.outputChainContracts(chainContracts)
-
-		chainTokens, err := exp.dao.SelectTokenById(chainInfo.Id)
-		if err != nil {
-			log.Errorf("GetExplorerInfo: SelectTokenById %s", err)
-			return myerror.DB_CONNECTTION_FAILED, ""
+		tchainStatus := make([]*model.CrossChainTxStatus, 0)
+		for _, item := range allTchainStatus {
+			if item.Id == chainInfo.Id {
+				tchainStatus = append(tchainStatus, item)
+			}
 		}
-		chainInfo.Tokens = exp.outputChainTokens(chainTokens)
-		allTokens = append(allTokens, chainInfo.Tokens...)
-
-		fchainStatus, err := exp.dao.SelectFChainTxByTime(chainInfo.Id, start, end)
-		if err != nil {
-			log.Errorf("GetExplorerInfo: SelectFChainTxByTime %s", err)
-			return myerror.DB_CONNECTTION_FAILED, ""
+		chainAddressNum := uint32(0)
+		for _, item := range allChainAddressNum {
+			if item.Id == chainInfo.Id {
+				chainAddressNum = item.AddNum
+			}
 		}
 		chainInfo.OutCrossChainTxStatus = exp.outputCrossChainTxStatus(fchainStatus, start, end)
-
-		tchainStatus, err := exp.dao.SelectTChainTxByTime(chainInfo.Id, start, end)
-		if err != nil {
-			log.Errorf("GetExplorerInfo: SelectTChainTxByTime %s", err)
-			return myerror.DB_CONNECTTION_FAILED, ""
-		}
 		chainInfo.InCrossChainTxStatus = exp.outputCrossChainTxStatus(tchainStatus, start, end)
-
-		addresses, err := exp.dao.SelectChainAddresses(chainInfo.Id)
-		if err != nil {
-			log.Errorf("GetExplorerInfo: SelectChainAddresses %s", err)
-			return myerror.DB_CONNECTTION_FAILED, ""
-		}
-		chainInfo.Addresses = addresses
-	}
-
-	// get cross chain tokens
-	crosschainTokens := make([]*model.CrossChainTokenResp, 0)
-	for _, token := range allTokens {
-		exist := false
-		for _, crosschainToken := range crosschainTokens {
-			if token.Token == crosschainToken.Name {
-				crosschainToken.Tokens = append(crosschainToken.Tokens, token)
-				exist = true
-				break
-			}
-		}
-		if exist == false {
-			crosschainTokenResp := &model.CrossChainTokenResp{
-				Name: token.Token,
-				Tokens: make([]*model.ChainTokenResp ,0),
-			}
-			crosschainTokenResp.Tokens = append(crosschainTokenResp.Tokens, token)
-			crosschainTokens = append(crosschainTokens, crosschainTokenResp)
-		}
+		chainInfo.Addresses = chainAddressNum
 	}
 
 	// get cross chain tx
-	mChainInfo, err := exp.dao.SelectChainInfoById(exp.c.Alliance.ChainId)
+	mChainInfo := exp.GetChain(common.CHAIN_POLY)
 	if mChainInfo == nil {
 		log.Errorf("Can't get muti chain info")
 		return myerror.DB_LOADDATA_FAILED, ""
@@ -134,7 +105,7 @@ func (exp *Service) GetTokenTxList(token string, start uint32, end uint32) (int6
 }
 
 func (exp *Service) GetAddressTxList(chainId uint32, addr string, start uint32, end uint32) (int64, string) {
-	log.Infof("GetAddressTxList, chainid: %d, token: %s", chainId, addr)
+	log.Infof("GetAddressTxList, chainid: %d, address: %s", chainId, addr)
 	addressTxList, err := exp.dao.SelectAddressTxList(chainId, addr, start, end - start + 1)
 	if err != nil {
 		return myerror.DB_CONNECTTION_FAILED, ""
@@ -288,6 +259,8 @@ func (exp *Service) outputChainInfos(chainInfos []*model.ChainInfo) []*model.Cha
 			In:        chainInfo.In,
 			Out:       chainInfo.Out,
 		}
+		chainInfoResp.Tokens = exp.outputChainTokens(chainInfo.Tokens)
+		chainInfoResp.Contracts = exp.outputChainContracts(chainInfo.Contracts)
 		chainInfoResps = append(chainInfoResps, chainInfoResp)
 	}
 	return chainInfoResps
@@ -323,12 +296,24 @@ func (exp *Service) outputChainTokens(chainTokens []*model.ChainToken) []*model.
 	return chainTokenResps
 }
 
-func (exp *Service) outputCrossChainTxStatus(status []*model.CrossChainTxStatus, start uint32, end uint32) []*model.CrossChainTxStatus {
-	status_new := make([]*model.CrossChainTxStatus, 0)
+func (exp *Service) outputCrossChainTokens(crossChainTokens []*model.CrossChainToken) []*model.CrossChainTokenResp {
+	crossChainTokenResps := make([]*model.CrossChainTokenResp, 0)
+	for _, item := range crossChainTokens {
+		crossChainTokenResp := &model.CrossChainTokenResp{
+			Name: item.Name,
+			Tokens: exp.outputChainTokens(item.Tokens),
+		}
+		crossChainTokenResps = append(crossChainTokenResps, crossChainTokenResp)
+	}
+	return crossChainTokenResps
+}
+
+func (exp *Service) outputCrossChainTxStatus(status []*model.CrossChainTxStatus, start uint32, end uint32) []*model.CrossChainTxStatusResp {
+	status_new := make([]*model.CrossChainTxStatusResp, 0)
 	current_day := exp.DayOfTime(start)
 	end_day := exp.DayOfTime(end)
 	for current_day <= end_day {
-		status_new = append(status_new, &model.CrossChainTxStatus{
+		status_new = append(status_new, &model.CrossChainTxStatusResp{
 			TT:       current_day,
 			TxNumber: 0,
 		})
@@ -614,13 +599,62 @@ func (exp *Service) outputAddressTxList(addressTxs []*model.AddressTx, addressTx
 	return &addressTxListResp
 }
 
+func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *model.AssetInfoResp {
+	assetInfo := new(model.AssetInfoResp)
+	amountBtcTotal := uint64(0)
+	amountUsdTotal := uint64(0)
+	addressNumberTotal := uint32(0)
+	txNumTotal := uint32(0)
+	for _, assetStatistic := range assetStatistics {
+		precision := exp.GetTokenPrecision(assetStatistic.Name)
+		amountBtcTotal += (assetStatistic.Amount_btc / precision)
+		amountUsdTotal += (assetStatistic.Amount_usd / precision)
+		addressNumberTotal += assetStatistic.Addressnum
+		txNumTotal += assetStatistic.TxNum
+	}
+
+	assetInfo.AmountBtcTotal = exp.FormatAmount(uint64(1), amountBtcTotal)
+	assetInfo.AmountUsdTotal = exp.FormatAmount(uint64(1), amountUsdTotal)
+	for _, assetStatistic := range assetStatistics {
+		precision := exp.GetTokenPrecision(assetStatistic.Name)
+		assetStatisticResp := &model.AssetStatisticResp{
+			Name: assetStatistic.Name,
+			Addressnum: assetStatistic.Addressnum,
+			AddressnumPrecent: exp.Precent(uint64(assetStatistic.Addressnum), uint64(addressNumberTotal)),
+			Amount: exp.FormatAmount(precision, assetStatistic.Amount),
+			Amount_btc: exp.FormatAmount(precision, assetStatistic.Amount_btc),
+			AmountBtcPrecent: exp.Precent(uint64(assetStatistic.Amount_btc / precision), uint64(amountBtcTotal)),
+			Amount_usd: exp.FormatAmount(precision, assetStatistic.Amount_usd),
+			AmountUsdPrecent: exp.Precent(uint64(assetStatistic.Amount_usd / precision), uint64(amountUsdTotal)),
+			TxNum: assetStatistic.TxNum,
+			TxNumPrecent: exp.Precent(uint64(assetStatistic.TxNum), uint64(txNumTotal)),
+			LatestUpdate: assetStatistic.LatestUpdate,
+		}
+		assetInfo.AssetStatistics = append(assetInfo.AssetStatistics, assetStatisticResp)
+	}
+	return assetInfo
+}
+
 // GetCrossTx gets cross tx by Tx
 func (exp *Service) GetLatestValidator() (int64, string) {
+	log.Infof("GetLatestValidator")
 	validators, err := exp.dao.SelectPolyValidator()
 	if err != nil {
 		return myerror.DB_CONNECTTION_FAILED, ""
 	}
 	validators_json, _ := json.Marshal(validators)
+	return myerror.SUCCESS, string(validators_json)
+}
+
+// GetCrossTx gets cross tx by Tx
+func (exp *Service) GetAssetStatistic() (int64, string) {
+	log.Infof("GetAssetStatistic")
+	assetStatistics, err := exp.dao.SelectAssetStatistic(math.MaxUint32)
+	if err != nil {
+		return myerror.DB_CONNECTTION_FAILED, ""
+	}
+	assetInfo := exp.outputAssetInfo(assetStatistics)
+	validators_json, _ := json.Marshal(assetInfo)
 	return myerror.SUCCESS, string(validators_json)
 }
 

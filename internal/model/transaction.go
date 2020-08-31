@@ -20,7 +20,6 @@ package model
 type ChainInfo struct {
 	Id        uint32           `gorm:"column:id"`
 	Name      string           `gorm:"column:xname"`
-	Url       string           `gorm:"column:url"`
 	XType     uint32           `gorm:"column:xtype"`
 	Height    uint32           `gorm:"column:height"`
 	In        uint32           `gorm:"column:txin"`
@@ -42,6 +41,22 @@ type ChainToken struct {
 	Type      string `json:"tokentype" gorm:"column:xtype"`
 	Precision uint64 `json:"precision" gorm:"column:xprecision"`
 	Desc      string `json:"desc" gorm:"column:desc"`
+}
+
+type CrossChainToken struct {
+	Name      string             `json:"name"`
+	Tokens    []*ChainToken      `json:"tokens"`
+}
+
+type CrossChainTxStatus struct {
+	Id        uint32    `json:"chainid"`
+	TT        uint32    `json:"timestamp"`
+	TxNumber  uint32    `json:"txnumber"`
+}
+
+type CrossChainAddressNum struct {
+	Id        uint32    `json:"chainid"`
+	AddNum    uint32    `json:"addressnumber"`
 }
 
 type FChainTx struct {
@@ -114,7 +129,6 @@ type TokenTx struct {
 	Direct       uint32  `json:"direct"`
 }
 
-
 type AddressTx struct {
 	TxHash       string `json:"txhash"`
 	From         string  `json:"from"`
@@ -126,26 +140,23 @@ type AddressTx struct {
 	Direct       uint32  `json:"direct"`
 }
 
-func (FChainTx) TableName() string {
-	return "fchain_tx"
+type AssetStatistic struct {
+	Name         string    `json:"name"`
+	Addressnum   uint32    `json:"addressnumber"`
+	Amount       uint64    	`json:"amount"`
+	Amount_btc   uint64    `json:"amount_btc"`
+	Amount_usd   uint64    `json:"amount_usd"`
+	TxNum        uint32    `json:"txnumber"`
+	LatestUpdate uint32    `json:"latestupdate"`
 }
 
-func (MChainTx) TableName() string {
-	return "mchain_tx"
+type AssetAddressNum struct {
+	Name      string    `json:"asset"`
+	AddNum    uint32    `json:"addressnumber"`
 }
 
-func (TChainTx) TableName() string {
-	return "tchain_tx"
-}
-
-func (ChainContract) TableName() string {
-	return "chain_contract"
-}
-
-func (ChainToken) TableName() string {
-	return "chain_token"
-}
-
-func (ChainInfo) TableName() string {
-	return "chain_info"
+type AssetTxInfo struct {
+	Name      string    `json:"asset"`
+	Amount    uint64    `json:"amount"`
+	TxNum     uint32    `json:"txnumber"`
 }

@@ -426,6 +426,29 @@ direct的解释：
 1. 从该链到其他链，outgo
 2. 从其他链到本链，income
 
+### 6. getassetstatistic
+查询跨链资产的统计信息
+
+GET
+```
+http://{{host}}/api/v1/getassetstatistic
+```
+
+#### 参数:
+```
+无
+```
+
+#### example:
+
+```
+curl -i http://172.168.3.26:30334/api/v1/getassetstatistic
+```
+
+```json
+{"action":"getassetstatistic","code":1,"desc":"success","result":"{\"amount_btc_total\":\"2302\",\"amount_usd_total\":\"26929296\",\"asset_statistics\":[{\"name\":\"Switcheo\",\"addressnumber\":2749,\"addressnumber_precent\":\"99.93%\",\"amount\":\"472418432.99673509\",\"amount_btc\":\"2302.43175628\",\"amount_btc_precent\":\"100.00%\",\"amount_usd\":\"26929296.96655629\",\"Amount_usd_precent\":\"100.00%\",\"txnumber\":3466,\"txnumber_precent\":\"99.94%\",\"latestupdate\":1598846400},{\"name\":\"DeepBrain Chain\",\"addressnumber\":2,\"addressnumber_precent\":\"0.07%\",\"amount\":\"0.00002\",\"amount_btc\":\"0\",\"amount_btc_precent\":\"0.00%\",\"amount_usd\":\"0.00000001\",\"Amount_usd_precent\":\"0.00%\",\"txnumber\":2,\"txnumber_precent\":\"0.06%\",\"latestupdate\":1598846400},{\"name\":\"Ethereum\",\"addressnumber\":0,\"addressnumber_precent\":\"0.00%\",\"amount\":\"0\",\"amount_btc\":\"0\",\"amount_btc_precent\":\"0.00%\",\"amount_usd\":\"0\",\"Amount_usd_precent\":\"0.00%\",\"txnumber\":0,\"txnumber_precent\":\"0.00%\",\"latestupdate\":0},{\"name\":\"Ontology\",\"addressnumber\":0,\"addressnumber_precent\":\"0.00%\",\"amount\":\"0\",\"amount_btc\":\"0\",\"amount_btc_precent\":\"0.00%\",\"amount_usd\":\"0\",\"Amount_usd_precent\":\"0.00%\",\"txnumber\":0,\"txnumber_precent\":\"0.00%\",\"latestupdate\":0},{\"name\":\"Ontology Gas\",\"addressnumber\":0,\"addressnumber_precent\":\"0.00%\",\"amount\":\"0\",\"amount_btc\":\"0\",\"amount_btc_precent\":\"0.00%\",\"amount_usd\":\"0\",\"Amount_usd_precent\":\"0.00%\",\"txnumber\":0,\"txnumber_precent\":\"0.00%\",\"latestupdate\":0}]}","version":"1.0.0"}
+```
+
 ## 使用API
 
 + 在chrome浏览器中下载插件swagger ui console

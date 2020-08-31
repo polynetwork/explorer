@@ -19,17 +19,29 @@ package client
 
 import (
 	"fmt"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/polynetwork/explorer/internal/conf"
 	"github.com/polynetwork/explorer/internal/log"
 	tmclient "github.com/tendermint/tendermint/rpc/client/http"
-    "github.com/cosmos/cosmos-sdk/types"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	"math/big"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/polynetwork/cosmos-poly-module/btcx"
+	"github.com/polynetwork/cosmos-poly-module/ccm"
+	"github.com/polynetwork/cosmos-poly-module/ft"
+	"github.com/polynetwork/cosmos-poly-module/headersync"
+	"github.com/polynetwork/cosmos-poly-module/lockproxy"
 )
 
 type CosmosClient struct {
 	client   *tmclient.HTTP
 	urls     []string
 	node     int
+	cdc      *codec.Codec
 }
 
 func NewCosmosClient(c *conf.Config) (client *CosmosClient) {
@@ -41,11 +53,27 @@ func NewCosmosClient(c *conf.Config) (client *CosmosClient) {
 	if err != nil {
 		panic(err)
 	}
+	cdc := NewCDC()
 	return &CosmosClient{
 		client:rawClient,
 		urls: c.Cosmos.Rawurl,
 		node: 0,
+		cdc: cdc,
 	}
+}
+
+func NewCDC() *codec.Codec {
+	cdc := codec.New()
+	bank.RegisterCodec(cdc)
+	types.RegisterCodec(cdc)
+	codec.RegisterCrypto(cdc)
+	auth.RegisterCodec(cdc)
+	btcx.RegisterCodec(cdc)
+	ccm.RegisterCodec(cdc)
+	ft.RegisterCodec(cdc)
+	headersync.RegisterCodec(cdc)
+	lockproxy.RegisterCodec(cdc)
+	return cdc
 }
 
 func (client *CosmosClient) Status() (*ctypes.ResultStatus, error) {
@@ -103,4 +131,21 @@ func (client *CosmosClient) TxSearch(query string, prove bool, page, perPage int
 		result, err = client.client.TxSearch(query, prove, page, perPage, orderBy)
 	}
 	return result, err
+}
+
+func (client *CosmosClient) GetGas(tx []byte) uint64 {
+	decoder := auth.DefaultTxDecoder(client.cdc)
+	stdTx, err := decoder(tx)
+	if err != nil {
+		log.Errorf("cosmos client GetGas err: %s", err.Error())
+		return 0
+	}
+	aa, ok := stdTx.(authtypes.StdTx)
+	if !ok {
+		log.Errorf("This is not cosmos std tx!")
+		return 0
+	}
+	amount := aa.Fee.Amount.AmountOf("swth").BigInt()
+	gas := big.NewInt(int64(aa.Fee.Gas))
+	return amount.Div(amount, gas).Uint64()
 }

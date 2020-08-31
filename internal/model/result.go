@@ -63,15 +63,15 @@ type ChainInfoResp struct {
 	Name      string               `json:"chainname"`
 	Height    uint32               `json:"blockheight"`
 	In        uint32               `json:"in"`
-	InCrossChainTxStatus []*CrossChainTxStatus    `json:"incrosschaintxstatus"`
+	InCrossChainTxStatus []*CrossChainTxStatusResp    `json:"incrosschaintxstatus"`
 	Out       uint32               `json:"out"`
-	OutCrossChainTxStatus []*CrossChainTxStatus    `json:"outcrosschaintxstatus"`
+	OutCrossChainTxStatus []*CrossChainTxStatusResp    `json:"outcrosschaintxstatus"`
 	Addresses uint32               `json:"addresses"`
 	Contracts []*ChainContractResp `json:"contracts"`
 	Tokens    []*ChainTokenResp    `json:"tokens"`
 }
 
-type CrossChainTxStatus struct {
+type CrossChainTxStatusResp struct {
 	TT        uint32    `json:"timestamp"`
 	TxNumber  uint32    `json:"txnumber"`
 }
@@ -342,4 +342,23 @@ type AddressTxListResponse struct {
 	}
 }
 
+type AssetStatisticResp struct {
+	Name         string    `json:"name"`
+	Addressnum   uint32    `json:"addressnumber"`
+	AddressnumPrecent string   `json:"addressnumber_precent"`
+	Amount       string    	`json:"amount"`
+	Amount_btc   string    `json:"amount_btc"`
+	AmountBtcPrecent string   `json:"amount_btc_precent"`
+	Amount_usd   string    `json:"amount_usd"`
+	AmountUsdPrecent string   `json:"Amount_usd_precent"`
+	TxNum        uint32    `json:"txnumber"`
+	TxNumPrecent string    `json:"txnumber_precent"`
+	LatestUpdate uint32    `json:"latestupdate"`
+}
+
+type AssetInfoResp struct {
+	AmountBtcTotal  string   `json:"amount_btc_total"`
+	AmountUsdTotal  string   `json:"amount_usd_total"`
+	AssetStatistics  []*AssetStatisticResp  `json:"asset_statistics"`
+}
 
