@@ -318,20 +318,20 @@ func (exp *Service) FormatFee(chain uint32, fee uint64) string {
 	if chain == common.CHAIN_BTC {
 		precision_new := decimal.New(int64(100000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
-		return fee_new.Div(precision_new).String()
+		return fee_new.Div(precision_new).String() + " BTC"
 	} else if chain == common.CHAIN_ONT {
 		precision_new := decimal.New(int64(1000000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
-		return fee_new.Div(precision_new).String()
+		return fee_new.Div(precision_new).String() + " ONG"
 	} else if chain == common.CHAIN_ETH {
 		precision_new := decimal.New(int64(1000000000000000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
-		return fee_new.Div(precision_new).String()
+		return fee_new.Div(precision_new).String() + " ETH"
 	} else if chain == common.CHAIN_NEO {
 		precision_new := decimal.New(int64(100000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
 		fee := fee_new.Div(precision_new).BigInt().Int64()
-		return strconv.FormatInt(fee, 10)
+		return strconv.FormatInt(fee, 10) + " GAS"
 	} else if chain == common.CHAIN_COSMOS {
 		precision_new := decimal.New(int64(100000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
