@@ -335,7 +335,7 @@ func (exp *Service) FormatFee(chain uint32, fee uint64) string {
 	} else if chain == common.CHAIN_COSMOS {
 		precision_new := decimal.New(int64(100000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
-		return fee_new.Div(precision_new).String()
+		return fee_new.Div(precision_new).String() + " SWTH"
 	} else {
 		precision_new := decimal.New(int64(1), 0)
 		fee_new := decimal.New(int64(fee), 0)
