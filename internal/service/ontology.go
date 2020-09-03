@@ -169,7 +169,7 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 							tctransfer.TxHash = event.TxHash
 							tctransfer.From = srv.Hash2Address(common.CHAIN_ONT, states[5].(string))
 							tctransfer.To = srv.Hash2Address(common.CHAIN_ONT, statesnew[2].(string))
-							tctransfer.Asset = common.HexStringReverse(statesnew[1].(string))
+							tctransfer.Asset = (statesnew[1].(string))
 							amount, _ := strconv.ParseUint(statesnew[3].(string), 16, 32)
 							tctransfer.Amount = amount
 						}

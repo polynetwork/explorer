@@ -388,5 +388,5 @@ func (srv *Service) GetConsumeGas(ctx *ctx.Context, hash ethcommon.Hash) uint64 
 	if err != nil {
 		return 0
 	}
-	return tx.GasPrice().Uint64() * receipt.CumulativeGasUsed
+	return tx.GasPrice().Uint64() * receipt.GasUsed
 }
