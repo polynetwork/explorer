@@ -156,6 +156,10 @@ func (srv *Service) saveEthCrossTxsByHeight(tx *sql.Tx, ctx *ctx.Context, chainI
 				fctx.Param = hex.EncodeToString(lockEvent.Value)
 				for _, v := range ethLockEvents {
 					if v.TxHash == lockEvent.TxHash {
+						toAssetHash := v.ToAssetHash
+						if v.ToChainId == common.CHAIN_ONT {
+							toAssetHash = common.HexStringReverse(toAssetHash)
+						}
 						fctransfer := &model.FChainTransfer{}
 						fctransfer.TxHash = lockEvent.Txid
 						fctransfer.From = srv.Hash2Address(common.CHAIN_ETH, v.FromAddress)
@@ -163,7 +167,7 @@ func (srv *Service) saveEthCrossTxsByHeight(tx *sql.Tx, ctx *ctx.Context, chainI
 						fctransfer.Asset = strings.ToLower(v.FromAssetHash)
 						fctransfer.Amount = v.Amount
 						fctransfer.ToChain = v.ToChainId
-						fctransfer.ToAsset = v.ToAssetHash
+						fctransfer.ToAsset = toAssetHash
 						fctransfer.ToUser = srv.Hash2Address(v.ToChainId, v.ToAddress)
 						fctx.Transfer = fctransfer
 						break
