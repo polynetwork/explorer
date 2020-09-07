@@ -1,0 +1,73 @@
+{
+  "redis": {
+    "addr": "localhost:6379",
+    "proto": "tcp",
+    "pool_size": 50,
+    "min_idle_conns": 10,
+    "dial_timeout": 2,
+    "read_timeout": 2,
+    "write_timeout": 2,
+    "idle_timeout": 10,
+    "expiration": 60
+  },
+  "mysql": {
+    "url": "127.0.0.1:3306",
+    "user": "root",
+    "pwd": "root",
+    "dbName": "cross_chain_explorer"
+  },
+  "server": {
+    "rest_port": 30334,
+    "version": "1.0.0",
+    "http_max_connections": 10000,
+    "master": 1,
+    "http_cert_path": "",
+    "http_key_path": "http_key_path",
+    "statistic_time_slot": 60,
+    "loglevel": 1
+  },
+  "coinmarketcap": {
+    "url": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/",
+    "appkey": "8c175886-3aec-4276-8961-1f0ce06ab69e"
+  },
+  "neo": {
+    "name": "neo",
+    "chainId": 4,
+    "rawurl": ["http://seed10.ngd.network:11332","http://seed9.ngd.network:11332"],
+    "block_duration": 1
+  },
+  "ontology": {
+    "name": "ontology",
+    "chainId": 3,
+    "rawurl": ["http://dappnode4.ont.io:20336","http://dappnode2.ont.io:20336"],
+    "block_duration": 1
+  },
+  "ethereum": {
+    "name": "eth",
+    "chainId": 2,
+    "rawurl": ["http://onto-eth.ont.io:10331"],
+    "block_duration": 1,
+    "proxy": "a4a0919ba5a2a89cb2eb1cb4018a16841b2e943f",
+    "btcx": "92705a16815a3d1aec3ce9cc273c5aa302961fcc"
+  },
+  "alliance": {
+    "name": "poly",
+    "chainId": 0,
+    "rawurl": ["http://13.92.155.62:20336"],
+    "block_duration": 1
+  },
+  "btc": {
+    "name": "btc",
+    "chainId": 1,
+    "user": ["omnicorerpc"],
+    "passwd": ["EzriglUqnFC!"],
+    "rawurl": ["http://18.140.187.37:18332"],
+    "block_duration": 1
+  },
+  "cosmos": {
+    "name": "switcheo",
+    "chainId": 5,
+    "rawurl": ["http://175.41.151.35:26657", "http://54.255.5.46:26657"],
+    "block_duration": 1
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "redis": {
+    "addr": "localhost:6379",
+    "proto": "tcp",
+    "pool_size": 50,
+    "min_idle_conns": 10,
+    "dial_timeout": 2,
+    "read_timeout": 2,
+    "write_timeout": 2,
+    "idle_timeout": 10,
+    "expiration": 60
+  },
+  "mysql": {
+    "url": "127.0.0.1:3306",
+    "user": "root",
+    "pwd": "Onchain@2019",
+    "dbName": "cross_chain_explorer"
+  },
+  "server": {
+    "rest_port": 30334,
+    "version": "1.0.0",
+    "http_max_connections": 10000,
+    "master": 1,
+    "http_cert_path": "",
+    "http_key_path": "http_key_path",
+    "statistic_time_slot": 10,
+    "loglevel": 1
+  },
+  "coinmarketcap": {
+    "url": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/",
+    "appkey": "8c175886-3aec-4276-8961-1f0ce06ab69e"
+  },
+  "neo": {
+    "name": "neo",
+    "chainId": 4,
+    "rawurl": ["http://seed1.ngd.network:20332"],
+    "block_duration": 1
+  },
+  "ontology": {
+    "name": "ontology",
+    "chainId": 3,
+    "rawurl": ["http://polaris4.ont.io:20336"],
+    "block_duration": 1
+  },
+  "ethereum": {
+    "name": "eth",
+    "chainId": 2,
+    "rawurl": ["https://ropsten.infura.io/v3/1ba5f3635395470e9a3f19ba7a852144"],
+    "block_duration": 1,
+    "proxy": "d8ae73e06552e270340b63a8bcabf9277a1aac99",
+    "btcx": "92705a16815a3d1aec3ce9cc273c5aa302961fcc"
+  },
+  "alliance": {
+    "name": "poly",
+    "chainId": 0,
+    "rawurl": ["http://beta1.poly.network:21336"],
+    "block_duration": 1
+  },
+  "btc": {
+    "name": "btc",
+    "chainId": 1,
+    "user": ["omnicorerpc"],
+    "passwd": ["EzriglUqnFC!"],
+    "rawurl": ["http://18.140.187.37:18332"],
+    "block_duration": 1
+  },
+  "cosmos": {
+    "name": "cosmos",
+    "chainId": 5,
+    "rawurl": ["http://40.115.182.238:26657"],
+    "block_duration": 1
+  }
+}
