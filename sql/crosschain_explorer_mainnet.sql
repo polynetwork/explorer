@@ -81,7 +81,7 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "USD Coin", "a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "USDC", "erc20", "1000000","usdc");
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Ontology", "41ad2ef4767a835b88b22d2120d0ba7f0b596322", "ONT-decimal", "oep4", "1000000000","ont");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Ontology", "6a718e3d8ac0e693225d4b86242de32d56468175", "ontd", "oep4", "1000000000","ont");
 
 
 
