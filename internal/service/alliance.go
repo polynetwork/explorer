@@ -116,6 +116,9 @@ func (srv *Service) saveAllianceCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Ch
 				if fchainid <=0 || fchainid >= 4 {
 					continue
 				}
+				if tchainid <=0 || tchainid >= 4 {
+					continue
+				}
 				mctx := &model.MChainTx{}
 				mctx.Chain = chainInfo.Id
 				mctx.TxHash = event.TxHash
