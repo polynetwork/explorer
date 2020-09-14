@@ -202,7 +202,7 @@ func (exp *Service) CheckChains(context *ctx.Context) {
 }
 
 func (exp *Service) Statistic() {
-	if exp.c.Server.Master == 0 {
+	if exp.c.Server.Master < 10 {
 		return
 	}
 	exp.DoStatistic()

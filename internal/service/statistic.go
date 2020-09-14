@@ -5,6 +5,7 @@ import (
 	"github.com/polynetwork/explorer/internal/coinmarketcap"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 	"time"
 )
 
@@ -140,11 +141,13 @@ func (srv *Service) updateAssetStatisticsByCoinPrice(assetStatistics []*model.As
 		coinPrice, ok := coinPrices[assetStatistic.Name]
 		if !ok {
 			log.Warnf("There is no coin %s!", assetStatistic.Name)
-			assetStatistic.Amount_usd = 0
-			assetStatistic.Amount_btc = 0
+			assetStatistic.Amount_usd = big.NewInt(0)
+			assetStatistic.Amount_btc = big.NewInt(0)
 		} else {
-			assetStatistic.Amount_usd = uint64(float64(assetStatistic.Amount) * coinPrice)
-			assetStatistic.Amount_btc = uint64(float64(assetStatistic.Amount_usd) / bitcoinPrice)
+			amount := new(big.Int).Mul(assetStatistic.Amount, big.NewInt(int64(coinPrice)))
+			assetStatistic.Amount_usd = amount
+			amount_btc := new(big.Int).Div(assetStatistic.Amount_usd, big.NewInt(int64(bitcoinPrice)))
+			assetStatistic.Amount_btc = amount_btc
 		}
 	}
 	return nil
@@ -166,9 +169,9 @@ func (srv *Service) latestUpdated(start uint32, end uint32) (res []*model.AssetS
 		statistic := &model.AssetStatistic{
 			Name: assetAddressNum.Name,
 			Addressnum: assetAddressNum.AddNum,
-			Amount: 0,
-			Amount_usd: 0,
-			Amount_btc: 0,
+			Amount: big.NewInt(0),
+			Amount_usd: big.NewInt(0),
+			Amount_btc: big.NewInt(0),
 			TxNum: 0,
 			LatestUpdate: start,
 		}
@@ -190,8 +193,8 @@ func (srv *Service) latestUpdated(start uint32, end uint32) (res []*model.AssetS
 				Name: assetTxInfo.Name,
 				Addressnum: 0,
 				Amount: assetTxInfo.Amount,
-				Amount_usd: 0,
-				Amount_btc: 0,
+				Amount_usd: big.NewInt(0),
+				Amount_btc: big.NewInt(0),
 				TxNum: assetTxInfo.TxNum,
 				LatestUpdate: start,
 			}
