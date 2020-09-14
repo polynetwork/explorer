@@ -62,27 +62,30 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Ontology", "519020fa558a52df57854135345c28024a596b68", "eONT", "erc20", "1000000000","ont");
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Bitcoin", "51cc7ff9516127827b598bd9c90937a3e71aecb6", "oWBTC", "OEP4", "100000000","btc");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Bitcoin", "8037dd7161401417d3571b92b86846d34309129a", "pWBTC", "OEP4", "100000000","btc");
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Ethereum", "a2f89e531e55636d4af1cd044237d2fd5a616c72", "oETH", "OEP4", "1000000000000000000","eth");
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Tether", "3e931f60f2cd1387b52f1889dfcaf02a54b2c6a0", "oUSDT", "OEP4", "1000000","usdt");
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "USD Coin", "348a9079a1420e11bbbc8b19f2cae6a4d5074eec", "oUSDC", "OEP4", "1000000","usdc");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "USD Coin", "061a07cd393aac289b8ecfda2c3784b637a2fb33", "pUSDC", "OEP4", "1000000","usdc");
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Dai", "3f0def1945d7129c5f6625147dcbbaaee402e751", "oDai", "OEP4", "1000000000000000000","dai");
 
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Tether", "dac17f958d2ee523a2206206994597c13d831ec7", "USDT", "erc20", "1000000","usdt");
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "2260fac5e5542a773aa44fbcfedf7c193bc2c599", "WBTC", "erc20", "100000000","btc");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "2260fac5e5542a773aa44fbcfedf7c193bc2c599", "Wrapped BTC", "erc20", "100000000","btc");
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Dai", "6b175474e89094c44da98b954eedeac495271d0f", "DAI", "erc20", "1000000000000000000","dai");
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "USD Coin", "a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "USDC", "erc20", "1000000","usdc");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "USD Coin", "a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "USD Coin", "erc20", "1000000","usdc");
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Ontology", "6a718e3d8ac0e693225d4b86242de32d56468175", "ontd", "oep4", "1000000000","ont");
 
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "eb4c2781e4eba804ce9a9803c67d0893436bb27d", "renBTC", "ERC20", "100000000","renBTC");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Bitcoin", "46c3051c553aaeb3724ea69336ec483f39fa91b1", "prenBTC", "OEP4", "100000000","renBTC");
 
 
 DROP TABLE IF EXISTS `poly_validators`;
