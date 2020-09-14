@@ -17,6 +17,8 @@
 
 package model
 
+import "math/big"
+
 type ChainInfo struct {
 	Id        uint32           `gorm:"column:id"`
 	Name      string           `gorm:"column:xname"`
@@ -79,7 +81,7 @@ type FChainTransfer struct {
 	Asset        string `json:"asset" gorm:"column:asset"`
 	From         string `json:"from" gorm:"column:xfrom"`
 	To           string `json:"to" gorm:"column:xto"`
-	Amount       uint64 `json:"amount" gorm:"column:amount"`
+	Amount       *big.Int `json:"amount" gorm:"column:amount"`
 	ToChain      uint32 `json:"tochainid" gorm:"column:tochainid"`
 	ToAsset      string `json:"toasset" gorm:"column:toasset"`
 	ToUser       string `json:"touser" gorm:"column:touser"`
@@ -116,14 +118,14 @@ type TChainTransfer struct {
 	Asset        string `json:"asset" gorm:"column:asset"`
 	From         string `json:"from" gorm:"column:xfrom"`
 	To           string `json:"to" gorm:"column:xto"`
-	Amount       uint64 `json:"amount" gorm:"column:amount"`
+	Amount       *big.Int `json:"amount" gorm:"column:amount"`
 }
 
 type TokenTx struct {
 	TxHash       string `json:"txhash"`
 	From         string  `json:"from"`
 	To           string  `json:"to"`
-	Amount       uint64  `json:"amount"`
+	Amount       *big.Int  `json:"amount"`
 	TT           uint32   `json:"timestamp"`
 	Height       uint32  `json:"blockheight"`
 	Direct       uint32  `json:"direct"`
@@ -134,7 +136,7 @@ type AddressTx struct {
 	From         string  `json:"from"`
 	To           string  `json:"to"`
 	Asset        string  `json:"asset"`
-	Amount       uint64  `json:"amount"`
+	Amount       *big.Int  `json:"amount"`
 	TT           uint32   `json:"timestamp"`
 	Height       uint32  `json:"blockheight"`
 	Direct       uint32  `json:"direct"`
@@ -143,9 +145,9 @@ type AddressTx struct {
 type AssetStatistic struct {
 	Name         string    `json:"name"`
 	Addressnum   uint32    `json:"addressnumber"`
-	Amount       uint64    	`json:"amount"`
-	Amount_btc   uint64    `json:"amount_btc"`
-	Amount_usd   uint64    `json:"amount_usd"`
+	Amount       *big.Int    	`json:"amount"`
+	Amount_btc   *big.Int    `json:"amount_btc"`
+	Amount_usd   *big.Int    `json:"amount_usd"`
 	TxNum        uint32    `json:"txnumber"`
 	LatestUpdate uint32    `json:"latestupdate"`
 }
@@ -157,6 +159,6 @@ type AssetAddressNum struct {
 
 type AssetTxInfo struct {
 	Name      string    `json:"asset"`
-	Amount    uint64    `json:"amount"`
+	Amount    *big.Int    `json:"amount"`
 	TxNum     uint32    `json:"txnumber"`
 }

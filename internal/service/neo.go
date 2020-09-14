@@ -25,6 +25,7 @@ import (
 	"github.com/polynetwork/explorer/internal/ctx"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 	"strconv"
 	"time"
 )
@@ -135,7 +136,8 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 								fctransfer.From = srv.Hash2Address(common.CHAIN_NEO, notifynew.State.Value[2].Value)
 								fctransfer.To = srv.Hash2Address(common.CHAIN_NEO, notify.State.Value[2].Value)
 								fctransfer.Asset = common.HexStringReverse(notifynew.State.Value[1].Value)
-								amount, _ := strconv.ParseUint(common.HexStringReverse(notifynew.State.Value[6].Value), 16, 64)
+								//amount, _ := strconv.ParseUint(common.HexStringReverse(notifynew.State.Value[6].Value), 16, 64)
+								amount, _ := new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[6].Value), 16)
 								fctransfer.Amount = amount
 								tchainId, _ := strconv.ParseUint(notifynew.State.Value[3].Value, 10, 32)
 								fctransfer.ToChain = uint32(tchainId)
@@ -177,7 +179,8 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 								tctransfer.From = srv.Hash2Address(common.CHAIN_NEO, notify.State.Value[2].Value)
 								tctransfer.To = srv.Hash2Address(common.CHAIN_NEO, notifynew.State.Value[2].Value)
 								tctransfer.Asset = common.HexStringReverse(notifynew.State.Value[1].Value)
-								amount, _ := strconv.ParseUint(common.HexStringReverse(notifynew.State.Value[3].Value), 16, 64)
+								//amount, _ := strconv.ParseUint(common.HexStringReverse(notifynew.State.Value[3].Value), 16, 64)
+								amount, _ := new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[3].Value), 16)
 								tctransfer.Amount = amount
 								break
 							}

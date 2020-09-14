@@ -23,6 +23,7 @@ import (
 	"github.com/polynetwork/explorer/internal/common"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 )
 
 const (
@@ -59,7 +60,7 @@ const (
 	_selectAddressTxTotal           = "select sum(cnt) from (select count(*) as cnt from fchain_transfer a left join fchain_tx b on a.txhash = b.txhash where a.xfrom = ? and b.chain_id = ? union all select count(*) as cnt from tchain_transfer c left join tchain_tx d on c.txhash = d.txhash where c.xto = ? and d.chain_id = ?) t"
 	_insertPolyValidator            = "insert into poly_validators(height, validators) values(?,?)"
 	_selectPolyValidator            = "select height, validators from poly_validators order by height desc limit 1"
-	_insertAssetStatistic           = "insert into asset_statistic(xname, addressnum, amount,amount_btc, amount_usd, txnum, latestupdate) values (?,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE txnum=txnum"
+	_insertAssetStatistic           = "insert into asset_statistic(xname, addressnum, amount,amount_btc, amount_usd, txnum, latestupdate) values (?,0,\"\",\"\",\"\",0,0) ON DUPLICATE KEY UPDATE txnum=txnum"
 	_selectAssetAddressNum          =  "select token, count(distinct addr) as addrNum from (select B.xtoken as token, A.xfrom as addr from fchain_transfer as A inner join chain_token as B on A.asset = B.hash union all select D.xtoken as token, C.xto as addr from tchain_transfer as C inner join chain_token as D on C.asset = D.hash) E group by E.token"
 	_selectAssetTxInfo              =  "select B.xtoken, sum(amount), count(*) from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? group by B.xtoken"
 	_updateStatistic                =  "update asset_statistic set addressnum = ?, amount = amount + ?, amount_btc = amount_btc + ?, amount_usd = amount_usd + ?, txnum = txnum + ?, latestupdate = ? where xname = ? and latestupdate = ?"
@@ -94,7 +95,7 @@ func (d *Dao) TxInsertTChainTx(tx *sql.Tx, t *model.TChainTx) (err error) {
 	}
 	if t.Transfer != nil && t.Transfer.TxHash != "" {
 		transfer := t.Transfer
-		if _, err = tx.Exec(_insertTChainTransfer, transfer.TxHash, t.Chain, t.TT, transfer.Asset, transfer.From, transfer.To, transfer.Amount); err != nil {
+		if _, err = tx.Exec(_insertTChainTransfer, transfer.TxHash, t.Chain, t.TT, transfer.Asset, transfer.From, transfer.To, transfer.Amount.String()); err != nil {
 			return
 		}
 	}
@@ -107,7 +108,7 @@ func (d *Dao) TxInsertFChainTx(tx *sql.Tx, f *model.FChainTx) (err error) {
 	}
 	if f.Transfer != nil && f.Transfer.TxHash != "" {
 		transfer := f.Transfer
-		if _, err = tx.Exec(_insertFChainTransfer,transfer.TxHash,f.Chain, f.TT,transfer.Asset,transfer.From,transfer.To,transfer.Amount,transfer.ToChain,transfer.ToAsset,transfer.ToUser); err != nil {
+		if _, err = tx.Exec(_insertFChainTransfer,transfer.TxHash,f.Chain, f.TT,transfer.Asset,transfer.From,transfer.To,transfer.Amount.String(), transfer.ToChain,transfer.ToAsset,transfer.ToUser); err != nil {
 			return
 		}
 	}
@@ -257,11 +258,13 @@ func (d *Dao) SelectFChainTxByHash(hash string, chain uint32) (res *model.FChain
 	}
 	{
 		row := d.db.QueryRow(_selectFChainTransferByHash, hash)
-		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &res.Transfer.Amount, &res.Transfer.ToChain, &res.Transfer.ToAsset, &res.Transfer.ToUser); err != nil {
+		var amount string
+		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount, &res.Transfer.ToChain, &res.Transfer.ToAsset, &res.Transfer.ToUser); err != nil {
 			if err == sql.ErrNoRows {
 				err = nil
 			}
 		}
+		res.Transfer.Amount, _ = new(big.Int).SetString(amount, 10)
 	}
 	return
 }
@@ -299,11 +302,13 @@ func (d *Dao) SelectTChainTxByHash(hash string) (res *model.TChainTx, err error)
 		}
 		{
 			row := d.db.QueryRow(_selectTChainTransferByHash, hash)
-			if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &res.Transfer.Amount); err != nil {
+			var amount string
+			if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount); err != nil {
 				if err == sql.ErrNoRows {
 					err = nil
 				}
 			}
+			res.Transfer.Amount, _ = new(big.Int).SetString(amount, 10)
 		}
 	}
 	return
@@ -428,11 +433,11 @@ func (d *Dao) SelectBitcoinTxUnConfirm(id uint32) (res []string, err error) {
 	return txhashs, nil
 }
 
-func (d *Dao) UpdateBitcoinTxConfirmed(txhash string, height uint32, tt uint32, gas uint64, toaddress string, amount uint64) (err error) {
+func (d *Dao) UpdateBitcoinTxConfirmed(txhash string, height uint32, tt uint32, gas uint64, toaddress string, amount *big.Int) (err error) {
 	if _, err = d.db.Exec(_updateBitcoinConfirmTx, tt, height, gas, txhash); err != nil {
 		return
 	}
-	if _, err = d.db.Exec(_updateBitcoinConfirmTransfer, toaddress, amount, txhash); err != nil {
+	if _, err = d.db.Exec(_updateBitcoinConfirmTransfer, toaddress, amount.String(), txhash); err != nil {
 		return
 	}
 	return
@@ -446,10 +451,12 @@ func (d *Dao) SelectTokenTxList(token string, start uint32, end uint32) (res []*
 	defer rows.Close()
 	for rows.Next() {
 		r := new(model.TokenTx)
-		if err = rows.Scan(&r.TxHash, &r.From, &r.To, &r.Amount, &r.Height, &r.TT, &r.Direct); err != nil {
+		var amount string
+		if err = rows.Scan(&r.TxHash, &r.From, &r.To, &amount, &r.Height, &r.TT, &r.Direct); err != nil {
 			rows = nil
 			return
 		}
+		r.Amount, _ = new(big.Int).SetString(amount, 10)
 		res = append(res, r)
 	}
 	err = rows.Err()
@@ -476,10 +483,12 @@ func (d *Dao) SelectAddressTxList(chainId uint32, addr string, start uint32, end
 	defer rows.Close()
 	for rows.Next() {
 		r := new(model.AddressTx)
-		if err = rows.Scan(&r.TxHash, &r.From, &r.To, &r.Asset, &r.Amount, &r.Height, &r.TT, &r.Direct); err != nil {
+		var amount string
+		if err = rows.Scan(&r.TxHash, &r.From, &r.To, &r.Asset, &amount, &r.Height, &r.TT, &r.Direct); err != nil {
 			rows = nil
 			return
 		}
+		r.Amount, _ = new(big.Int).SetString(amount, 10)
 		res = append(res, r)
 	}
 	err = rows.Err()

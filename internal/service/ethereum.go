@@ -32,6 +32,7 @@ import (
 	"github.com/polynetwork/explorer/internal/ethtools/lockproxy"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 	"strings"
 	"time"
 )
@@ -306,7 +307,7 @@ func (srv *Service) getProxyEventByBlockNumber(contractAddr string, height uint6
 			ToChainId:     uint32(evt.ToChainId),
 			ToAssetHash:   hex.EncodeToString(evt.ToAssetHash),
 			ToAddress:  hex.EncodeToString(evt.ToAddress),
-			Amount:    evt.Amount.Uint64(),
+			Amount:    evt.Amount,
 		})
 	}
 
@@ -324,7 +325,7 @@ func (srv *Service) getProxyEventByBlockNumber(contractAddr string, height uint6
 			TxHash:    evt.Raw.TxHash.String()[2:],
 			ToAssetHash:    evt.ToAssetHash.String()[2:],
 			ToAddress:   evt.ToAddress.String()[2:],
-			Amount:  evt.Amount.Uint64(),
+			Amount:  evt.Amount,
 		})
 	}
 	return ethLockEvents, ethUnlockEvents, nil
@@ -359,7 +360,7 @@ func (srv *Service) getBTCXEventByBlockNumber(contractAddr string, height uint64
 			ToChainId:     uint32(evt.ToChainId),
 			ToAssetHash:   hex.EncodeToString(evt.ToAssetHash),
 			ToAddress:  hex.EncodeToString(evt.ToAddress),
-			Amount:    evt.Amount,
+			Amount:    big.NewInt(int64(evt.Amount)),
 		})
 	}
 
@@ -377,7 +378,7 @@ func (srv *Service) getBTCXEventByBlockNumber(contractAddr string, height uint64
 			TxHash:    evt.Raw.TxHash.String()[2:],
 			ToAssetHash:    evt.ToAssetHash.String()[2:],
 			ToAddress:   evt.ToAddress.String()[2:],
-			Amount:  evt.Amount,
+			Amount:  big.NewInt(int64(evt.Amount)),
 		})
 	}
 	return ethLockEvents, ethUnlockEvents, nil

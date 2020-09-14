@@ -33,6 +33,7 @@ import (
 	"github.com/polynetwork/explorer/internal/server/rpc/client"
 	ontcommon "github.com/ontio/ontology/common"
 	"github.com/shopspring/decimal"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -308,10 +309,11 @@ func (exp *Service) Hash2Address(chainId uint32, value string) string {
 	return value
 }
 
-func (exp *Service) FormatAmount(precision uint64, amount uint64) string {
-	precision_new := decimal.New(int64(precision), 0)
-	amount_new := decimal.New(int64(amount), 0)
-	return amount_new.Div(precision_new).String()
+func (exp *Service) FormatAmount(precision uint64, amount *big.Int) string {
+	precision_new := big.NewFloat(float64(precision))
+	amount_new, _ := new(big.Float).SetString(amount.String())
+	amount_new.Quo(amount_new, precision_new)
+	return amount_new.String()
 }
 
 func (exp *Service) FormatFee(chain uint32, fee uint64) string {

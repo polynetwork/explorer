@@ -25,6 +25,7 @@ import (
 	"github.com/polynetwork/explorer/internal/ctx"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -224,7 +225,8 @@ func (srv *Service) getCosmosCCMLockEventByBlockNumber(height uint64) ([]*model.
 						})
 					} else if e.Type == _cosmos_lock {
 						tchainId, _ := strconv.ParseUint(string(e.Attributes[1].Value), 10, 32)
-						amount, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 64)
+						//amount, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 64)
+						amount, _ := new(big.Int).SetString(string(e.Attributes[5].Value), 10)
 						lockEvents = append(lockEvents, &model.LockEvent{
 							Method: _cosmos_lock,
 							TxHash: strings.ToLower(tx.Hash.String()),
@@ -276,7 +278,8 @@ func (srv *Service) getCosmosCCMUnlockEventByBlockNumber(height uint64) ([]*mode
 							Fee: client.GetGas(tx.Tx),
 						})
 					} else if e.Type == _cosmos_unlock {
-						amount, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 64)
+						//amount, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 64)
+						amount, _ := new(big.Int).SetString(string(e.Attributes[2].Value), 10)
 						unlockEvents = append(unlockEvents, &model.UnlockEvent{
 							Method: _cosmos_unlock,
 							TxHash: strings.ToLower(tx.Hash.String()),

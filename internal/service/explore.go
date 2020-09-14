@@ -24,7 +24,7 @@ import (
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
 	myerror "github.com/polynetwork/explorer/internal/server/restful/error"
-	"strconv"
+	"math/big"
 	"strings"
 )
 
@@ -446,7 +446,7 @@ func (exp *Service) outputFChainTx(fChainTx *model.FChainTx) *model.FChainTxResp
 		fChainTxResp.Transfer = &model.FChainTransferResp{
 			From:        fChainTx.Transfer.From,
 			To:          fChainTx.Transfer.To,
-			Amount:      strconv.FormatUint(fChainTx.Transfer.Amount, 10),
+			Amount:      fChainTx.Transfer.Amount.String(),
 			ToChain:     fChainTx.Transfer.ToChain,
 			ToChainName: exp.ChainId2Name(fChainTx.Transfer.ToChain),
 			ToUser:      fChainTx.Transfer.ToUser,
@@ -512,7 +512,7 @@ func (exp *Service) outputTChainTx(tChainTx *model.TChainTx) *model.TChainTxResp
 		tChainTxResp.Transfer = &model.TChainTransferResp{
 			From:         tChainTx.Transfer.From,
 			To:           tChainTx.Transfer.To,
-			Amount:       strconv.FormatUint(tChainTx.Transfer.Amount, 10),
+			Amount:       tChainTx.Transfer.Amount.String(),
 		}
 		token := exp.GetToken(tChainTx.Transfer.Asset)
 		tChainTxResp.Transfer.TokenHash = tChainTx.Transfer.Asset
@@ -556,7 +556,7 @@ func (exp *Service) outputTokenTxList(tokenHash string, tokenTxs []*model.TokenT
 	tokenTxListResp.TokenTxList = make([]*model.TokenTxResp, 0)
 	token := exp.GetToken(tokenHash)
 	for _, tokenTx := range tokenTxs {
-		amount := strconv.FormatUint(tokenTx.Amount, 10)
+		amount := tokenTx.Amount.String()
 		if token != nil {
 			amount = exp.FormatAmount(token.Precision, tokenTx.Amount)
 		}
@@ -582,7 +582,7 @@ func (exp *Service) outputAddressTxList(addressTxs []*model.AddressTx, addressTx
 			TxHash: addressTx.TxHash,
 			From: addressTx.From,
 			To: addressTx.To,
-			Amount: strconv.FormatUint(addressTx.Amount, 10),
+			Amount: addressTx.Amount.String(),
 			Height: addressTx.Height,
 			TT: addressTx.TT,
 			Direct: addressTx.Direct,
@@ -601,31 +601,46 @@ func (exp *Service) outputAddressTxList(addressTxs []*model.AddressTx, addressTx
 
 func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *model.AssetInfoResp {
 	assetInfo := new(model.AssetInfoResp)
-	amountBtcTotal := uint64(0)
-	amountUsdTotal := uint64(0)
+	amountBtcTotal := new(big.Int)
+	amountUsdTotal := new(big.Int)
 	addressNumberTotal := uint32(0)
 	txNumTotal := uint32(0)
 	for _, assetStatistic := range assetStatistics {
 		precision := exp.GetTokenPrecision(assetStatistic.Name)
-		amountBtcTotal += (assetStatistic.Amount_btc / precision)
-		amountUsdTotal += (assetStatistic.Amount_usd / precision)
+
+		amount_btc := assetStatistic.Amount_btc
+		amount_btc.Div(amount_btc, big.NewInt(int64(precision)))
+		amountBtcTotal.Add(amountBtcTotal, amount_btc)
+
+		amount_usd := assetStatistic.Amount_usd
+		amount_usd.Div(amount_usd, big.NewInt(int64(precision)))
+		amountUsdTotal.Add(amountUsdTotal, amount_usd)
+
 		addressNumberTotal += assetStatistic.Addressnum
 		txNumTotal += assetStatistic.TxNum
 	}
 
 	assetInfo.AmountBtcTotal = exp.FormatAmount(uint64(1), amountBtcTotal)
 	assetInfo.AmountUsdTotal = exp.FormatAmount(uint64(1), amountUsdTotal)
+
 	for _, assetStatistic := range assetStatistics {
 		precision := exp.GetTokenPrecision(assetStatistic.Name)
+
+		amount_btc := assetStatistic.Amount_btc
+		amount_btc.Div(amount_btc, big.NewInt(int64(precision)))
+
+		amount_usd := assetStatistic.Amount_usd
+		amount_usd.Div(amount_usd, big.NewInt(int64(precision)))
+
 		assetStatisticResp := &model.AssetStatisticResp{
 			Name: assetStatistic.Name,
 			Addressnum: assetStatistic.Addressnum,
 			AddressnumPrecent: exp.Precent(uint64(assetStatistic.Addressnum), uint64(addressNumberTotal)),
 			Amount: exp.FormatAmount(precision, assetStatistic.Amount),
 			Amount_btc: exp.FormatAmount(precision, assetStatistic.Amount_btc),
-			AmountBtcPrecent: exp.Precent(uint64(assetStatistic.Amount_btc / precision), uint64(amountBtcTotal)),
+			AmountBtcPrecent: exp.Precent(amount_btc.Uint64(), amountBtcTotal.Uint64()),
 			Amount_usd: exp.FormatAmount(precision, assetStatistic.Amount_usd),
-			AmountUsdPrecent: exp.Precent(uint64(assetStatistic.Amount_usd / precision), uint64(amountUsdTotal)),
+			AmountUsdPrecent: exp.Precent(amount_usd.Uint64(), amountUsdTotal.Uint64()),
 			TxNum: assetStatistic.TxNum,
 			TxNumPrecent: exp.Precent(uint64(assetStatistic.TxNum), uint64(txNumTotal)),
 			LatestUpdate: assetStatistic.LatestUpdate,

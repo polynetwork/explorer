@@ -24,6 +24,7 @@ import (
 	"github.com/polynetwork/explorer/internal/ctx"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 	"strconv"
 	"time"
 )
@@ -129,8 +130,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 							if len(fctransfer.Asset) < 20 {
 								continue
 							}
-							amount, _ := strconv.ParseUint(common.HexStringReverse(statesnew[6].(string)), 16, 64)
-							fctransfer.Amount = uint64(amount)
+							//amount, _ := strconv.ParseUint(common.HexStringReverse(statesnew[6].(string)), 16, 64)
+							amount, _ := new(big.Int).SetString(common.HexStringReverse(statesnew[6].(string)), 16)
+							fctransfer.Amount = amount
 							toChain, _ := strconv.ParseUint(statesnew[3].(string), 16, 32)
 							if toChain > 32 {
 								continue
@@ -180,7 +182,8 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 							if len(tctransfer.Asset) < 20 {
 								continue
 							}
-							amount, _ := strconv.ParseUint(common.HexStringReverse(statesnew[3].(string)), 16, 64)
+							//amount, _ := strconv.ParseUint(common.HexStringReverse(statesnew[3].(string)), 16, 64)
+							amount, _ := new(big.Int).SetString(common.HexStringReverse(statesnew[3].(string)), 16)
 							tctransfer.Amount = amount
 							break
 						}

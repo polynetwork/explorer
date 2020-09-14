@@ -128,7 +128,7 @@ CREATE TABLE `fchain_transfer` (
   `asset` VARCHAR(128) NOT NULL COMMENT '资产hash',
   `xfrom` VARCHAR(128) NOT NULL COMMENT '发送用户',
   `xto` VARCHAR(128) NOT NULL COMMENT '接受用户',
-  `amount` BIGINT(8) NOT NULL COMMENT '收到的金额',
+  `amount` VARCHAR(32) NOT NULL COMMENT '收到的金额',
   `tochainid` INT(4) NOT NULL COMMENT '目标链的id',
   `toasset` VARCHAR(1024) NOT NULL COMMENT '目标链的资产hash',
   `touser` VARCHAR(128) NOT NULL COMMENT '目标链的接受用户',
@@ -160,7 +160,7 @@ CREATE TABLE `tchain_transfer` (
   `asset` VARCHAR(128) NOT NULL COMMENT '资产hash',
   `xfrom` VARCHAR(128) NOT NULL COMMENT '发送用户',
   `xto` VARCHAR(128) NOT NULL COMMENT '接受用户',
-  `amount` BIGINT(8) NOT NULL COMMENT '收到的金额',
+  `amount` VARCHAR(32) NOT NULL COMMENT '收到的金额',
   PRIMARY KEY (`txhash`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
@@ -168,9 +168,9 @@ DROP TABLE IF EXISTS `asset_statistic`;
 CREATE TABLE `asset_statistic` (
   `xname` VARCHAR(16)  COMMENT '资产名称',
   `addressnum`   INT(4) NOT NULL COMMENT '资产的总地址数',
-  `amount`       BIGINT(8)  NOT NULL COMMENT '资产的总价值',
-  `amount_btc`  BIGINT(8)  NOT NULL COMMENT '资产的总价值',
-  `amount_usd`  BIGINT(8)  NOT NULL COMMENT '资产的总价值',
+  `amount`       VARCHAR(32)  NOT NULL COMMENT '资产的总价值',
+  `amount_btc`   VARCHAR(32)  NOT NULL COMMENT '资产的总价值',
+  `amount_usd`   VARCHAR(32)  NOT NULL COMMENT '资产的总价值',
   `txnum`       INT(4) NOT NULL COMMENT '总的交易个数',
   `latestupdate` INT(4)  NOT NULL COMMENT '统计数据的时间点',
   PRIMARY KEY (`xname`)

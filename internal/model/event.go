@@ -17,6 +17,8 @@
 
 package model
 
+import "math/big"
+
 type ECCMLockEvent struct {
 	Method   string
 	Txid     string
@@ -45,12 +47,12 @@ type LockEvent struct {
 	ToChainId       uint32
 	ToAssetHash     string
 	ToAddress       string
-	Amount          uint64
+	Amount          *big.Int
 }
 type UnlockEvent struct {
 	Method          string
 	TxHash          string
 	ToAssetHash     string
 	ToAddress       string
-	Amount          uint64
+	Amount          *big.Int
 }

@@ -30,6 +30,7 @@ import (
 	"github.com/polynetwork/explorer/internal/model"
 	mccommon "github.com/polynetwork/poly/common"
 	"golang.org/x/crypto/ripemd160"
+	"math/big"
 	"time"
 )
 
@@ -189,7 +190,7 @@ func (self *Service) parseTxFromAlliance(tx *sql.Tx, mtx *model.MChainTx) (uint3
 		fxtransfer.From = fromAddress
 		fxtransfer.To = toAddress
 		fxtransfer.Asset = common.BTC_TOKEN_HASH
-		fxtransfer.Amount = uint64(amount)
+		fxtransfer.Amount = big.NewInt(int64(amount))
 		fxtransfer.ToChain = uint32(tchain)
 		token := self.SearchToken(common.BTC_TOKEN_NAME, uint32(tchain))
 		tokenHash := ""
@@ -242,7 +243,7 @@ func (self *Service) parseTxFromAlliance(tx *sql.Tx, mtx *model.MChainTx) (uint3
 		tctransfer.Asset = common.BTC_TOKEN_HASH
 		tctransfer.From = fromAddress
 		tctransfer.To = ""
-		tctransfer.Amount = 0
+		tctransfer.Amount = big.NewInt(0)
 		tctx.Transfer = tctransfer
 		err = self.dao.TxInsertTChainTx(tx, tctx)
 		if err != nil {
@@ -306,7 +307,7 @@ func (self *Service) checkTx() {
 		toAddress := string(toAddressByte)
 
 		log.Infof("to chain update: %s, tx hash: %s, to address: %s, output amount:%d\n", self.c.Bitcoin.Name, txhash, toAddress, uint64(outputAmount))
-		err = self.dao.UpdateBitcoinTxConfirmed(txhash, uint32(block.Height), uint32(block.Time), uint64(gas), toAddress, uint64(outputAmount))
+		err = self.dao.UpdateBitcoinTxConfirmed(txhash, uint32(block.Height), uint32(block.Time), uint64(gas), toAddress, big.NewInt(int64(outputAmount)))
 		if err != nil {
 			log.Errorf("checkTx: UpdateBitcoinTxConfirmed transaction %s %v", txhash, err)
 		}
