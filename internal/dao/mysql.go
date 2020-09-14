@@ -257,7 +257,7 @@ func (d *Dao) SelectFChainTxByHash(hash string, chain uint32) (res *model.FChain
 		}
 	}
 	{
-		row := d.db.QueryRow(_selectFChainTransferByHash, hash)
+		row := d.db.QueryRow(_selectFChainTransferByHash, res.TxHash)
 		var amount string
 		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount, &res.Transfer.ToChain, &res.Transfer.ToAsset, &res.Transfer.ToUser); err != nil {
 			if err == sql.ErrNoRows {
