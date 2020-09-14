@@ -329,11 +329,13 @@ func (d *Dao) SelectTChainTxByMHash(hash string) (res *model.TChainTx, err error
 	}
 	{
 		row := d.db.QueryRow(_selectTChainTransferByHash, res.TxHash)
-		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &res.Transfer.Amount); err != nil {
+		var amount string
+		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount); err != nil {
 			if err == sql.ErrNoRows {
 				err = nil
 			}
 		}
+		res.Transfer.Amount, _ = new(big.Int).SetString(amount, 10)
 	}
 	return
 }
