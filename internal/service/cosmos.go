@@ -210,6 +210,9 @@ func (srv *Service) getCosmosCCMLockEventByBlockNumber(height uint64) ([]*model.
 			for _, tx := range res.Txs {
 				for _, e := range tx.TxResult.Events {
 					if e.Type == _cosmos_crosschainlock {
+						if len(e.Attributes) < 7 {
+							continue
+						}
 						tchainId, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 32)
 						value, _ := hex.DecodeString(string(e.Attributes[6].Value))
 						ccmLockEvents = append(ccmLockEvents, &model.ECCMLockEvent{
@@ -224,6 +227,9 @@ func (srv *Service) getCosmosCCMLockEventByBlockNumber(height uint64) ([]*model.
 							Fee: client.GetGas(tx.Tx),
 						})
 					} else if e.Type == _cosmos_lock {
+						if len(e.Attributes) < 6 {
+							continue
+						}
 						tchainId, _ := strconv.ParseUint(string(e.Attributes[1].Value), 10, 32)
 						//amount, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 64)
 						amount, _ := new(big.Int).SetString(string(e.Attributes[5].Value), 10)
@@ -267,6 +273,9 @@ func (srv *Service) getCosmosCCMUnlockEventByBlockNumber(height uint64) ([]*mode
 			for _, tx := range res.Txs {
 				for _, e := range tx.TxResult.Events {
 					if e.Type == _cosmos_crosschainunlock {
+						if len(e.Attributes) < 4 {
+							continue
+						}
 						fchainId, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 32)
 						ccmUnlockEvents = append(ccmUnlockEvents, &model.ECCMUnlockEvent{
 							Method: _cosmos_crosschainunlock,
@@ -278,6 +287,9 @@ func (srv *Service) getCosmosCCMUnlockEventByBlockNumber(height uint64) ([]*mode
 							Fee: client.GetGas(tx.Tx),
 						})
 					} else if e.Type == _cosmos_unlock {
+						if len(e.Attributes) < 3 {
+							continue
+						}
 						//amount, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 64)
 						amount, _ := new(big.Int).SetString(string(e.Attributes[2].Value), 10)
 						unlockEvents = append(unlockEvents, &model.UnlockEvent{

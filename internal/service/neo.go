@@ -128,10 +128,16 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 					case _neo_crosschainlock:
 						log.Infof("from chain: %s, txhash: %s\n", chainInfo.Name, tx.Txid[2:])
 						fctransfer := &model.FChainTransfer{}
+						if len(notify.State.Value) < 6 {
+							continue
+						}
 						//
 						for _, notifynew := range exeitem.Notifications {
 							contractMethodNew := srv.parseNeoMethod(notifynew.State.Value[0].Value)
 							if contractMethodNew == _neo_lock || contractMethodNew == _neo_lock2 {
+								if len(notifynew.State.Value) < 7 {
+									continue
+								}
 								fctransfer.TxHash = tx.Txid[2:]
 								fctransfer.From = srv.Hash2Address(common.CHAIN_NEO, notifynew.State.Value[2].Value)
 								fctransfer.To = srv.Hash2Address(common.CHAIN_NEO, notify.State.Value[2].Value)
@@ -172,9 +178,15 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 					case _neo_crosschainunlock:
 						log.Infof("to chain: %s, txhash: %s\n", chainInfo.Name, tx.Txid[2:])
 						tctransfer := &model.TChainTransfer{}
+						if len(notify.State.Value) < 4 {
+							continue
+						}
 						for _, notifynew := range exeitem.Notifications {
 							contractMethodNew := srv.parseNeoMethod(notifynew.State.Value[0].Value)
 							if contractMethodNew == _neo_unlock || contractMethodNew == _neo_unlock2 {
+								if len(notifynew.State.Value) < 4 {
+									continue
+								}
 								tctransfer.TxHash = tx.Txid[2:]
 								tctransfer.From = srv.Hash2Address(common.CHAIN_NEO, notify.State.Value[2].Value)
 								tctransfer.To = srv.Hash2Address(common.CHAIN_NEO, notifynew.State.Value[2].Value)

@@ -56,10 +56,9 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(5, "Switcheo", "73777468", "Switcheo", "Cosmos", "100000000","swth");
 
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Ontology Gas", "c8757865920e0467f5d23b59845aa357a24ea38c", "Ethereum Ontology Gas", "ERO20", "1000000000","ong");
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Ontology Gas", "6a4c89eb9a26a2da34f13f8976daa9fd7526f35c", "eONG", "erc20", "1000000000","ong");
-
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Ontology", "519020fa558a52df57854135345c28024a596b68", "eONT", "erc20", "1000000000","ont");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Ontology", "cb46c550539ac3db72dc7af7c89b11c306c727c2", "pONT", "erc20", "1000000000","ont");
 
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Bitcoin", "8037dd7161401417d3571b92b86846d34309129a", "pWBTC", "OEP4", "100000000","btc");
@@ -81,7 +80,8 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "USD Coin", "a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "USD Coin", "erc20", "1000000","usdc");
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Ontology", "6a718e3d8ac0e693225d4b86242de32d56468175", "ontd", "oep4", "1000000000","ont");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Ontology", "33ae7eae016193ba0fe238b223623bc78faac158", "ontd", "oep4", "1000000000","ont");
 
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "eb4c2781e4eba804ce9a9803c67d0893436bb27d", "renBTC", "ERC20", "100000000","renBTC");

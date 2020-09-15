@@ -113,6 +113,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 				case _ont_crosschainlock:
 					log.Infof("from chain: %s, txhash: %s\n", chainInfo.Name, event.TxHash)
 					fctransfer := &model.FChainTransfer{}
+					if len(states) < 7 {
+						continue
+					}
 					for _, notifynew := range event.Notify {
 						statesnew := notifynew.States.([]interface{})
 						//log.Errorf("%v", statesnew)
@@ -123,6 +126,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 						contractMethod := srv.parseOntolofyMethod(method)
 						if contractMethod == _ont_lock {
 							//
+							if len(statesnew) < 7 {
+								continue
+							}
 							fctransfer.TxHash = event.TxHash
 							fctransfer.From = srv.Hash2Address(common.CHAIN_ONT, statesnew[2].(string))
 							fctransfer.To = srv.Hash2Address(common.CHAIN_ONT, states[5].(string))
@@ -165,6 +171,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 				case _ont_crosschainunlock:
 					log.Infof("to chain: %s, txhash: %s\n", chainInfo.Name, event.TxHash)
 					tctransfer := &model.TChainTransfer{}
+					if len(states) < 6 {
+						continue
+					}
 					for _, notifynew := range event.Notify {
 						statesnew := notifynew.States.([]interface{})
 						//log.Errorf("%v", statesnew)
@@ -175,6 +184,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 						contractMethod := srv.parseOntolofyMethod(method)
 						if contractMethod == _ont_unlock {
 							//
+							if len(statesnew) < 4 {
+								continue
+							}
 							tctransfer.TxHash = event.TxHash
 							tctransfer.From = srv.Hash2Address(common.CHAIN_ONT, states[5].(string))
 							tctransfer.To = srv.Hash2Address(common.CHAIN_ONT, statesnew[2].(string))
