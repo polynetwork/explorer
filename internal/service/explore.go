@@ -122,7 +122,7 @@ func (exp *Service) GetAddressTxList(chainId uint32, addr string, start uint32, 
 // TODO GetCrossTxList gets Cross transaction list from start to end (to be optimized)
 func (exp *Service) GetCrossTxList(start int, end int) (int64, string) {
 	log.Infof("GetCrossTxList, start: %d, end: %d", start, end)
-	mChainTxs, err := exp.dao.SelectMChainTxByLimit(start, end-start+1)
+	mChainTxs, err := exp.dao.SelectMChainTxByLimit(start, end-start+1, common.CHAIN_ETH)
 	if err != nil {
 		return myerror.DB_CONNECTTION_FAILED, ""
 	}
