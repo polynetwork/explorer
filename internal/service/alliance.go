@@ -116,10 +116,10 @@ func (srv *Service) saveAllianceCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Ch
 				}
 				fchainid := uint32(states[1].(float64))
 				tchainid := uint32(states[2].(float64))
-				if fchainid <=0 || fchainid >= 16 {
+				if !srv.IsMonitorChain(fchainid){
 					continue
 				}
-				if tchainid <=0 || tchainid >= 16 {
+				if !srv.IsMonitorChain(tchainid) {
 					continue
 				}
 				mctx := &model.MChainTx{}

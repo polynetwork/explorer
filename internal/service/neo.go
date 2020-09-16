@@ -170,6 +170,12 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 						fctx.Key = notify.State.Value[4].Value
 						fctx.Param = notify.State.Value[5].Value
 						fctx.Transfer = fctransfer
+						if !srv.IsMonitorChain(fctx.TChain) {
+							continue
+						}
+						if fctx.Transfer != nil && !srv.IsMonitorChain(fctx.Transfer.ToChain) {
+							continue
+						}
 						err := srv.dao.TxInsertFChainTxAndCache(sqlTx, fctx)
 						if err != nil {
 							return 0, 0, err
@@ -209,6 +215,9 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 						tctx.Contract = common.HexStringReverse(notify.State.Value[2].Value)
 						tctx.RTxHash = common.HexStringReverse(notify.State.Value[3].Value)
 						tctx.Transfer = tctransfer
+						if !srv.IsMonitorChain(tctx.FChain) {
+							continue
+						}
 						err = srv.dao.TxInsertTChainTxAndCache(sqlTx, tctx)
 						if err != nil {
 							return 0, 0, err

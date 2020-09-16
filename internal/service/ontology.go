@@ -140,10 +140,10 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 							amount, _ := new(big.Int).SetString(common.HexStringReverse(statesnew[6].(string)), 16)
 							fctransfer.Amount = amount
 							toChain, _ := strconv.ParseUint(statesnew[3].(string), 16, 32)
-							if toChain > 32 {
+							fctransfer.ToChain = uint32(toChain)
+							if !srv.IsMonitorChain(fctransfer.ToChain) {
 								continue
 							}
-							fctransfer.ToChain = uint32(toChain)
 							fctransfer.ToAsset = statesnew[4].(string)
 							fctransfer.ToUser = srv.Hash2Address(uint32(toChain), statesnew[5].(string))
 							break
@@ -162,6 +162,12 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 					fctx.Key = states[4].(string)
 					fctx.Param = states[6].(string)
 					fctx.Transfer = fctransfer
+					if !srv.IsMonitorChain(fctx.TChain) {
+						continue
+					}
+					if fctx.Transfer != nil && !srv.IsMonitorChain(fctx.Transfer.ToChain) {
+						continue
+					}
 					err := srv.dao.TxInsertFChainTxAndCache(tx, fctx)
 					if err != nil {
 						log.Errorf("saveOntCrossTxsByHeight: InsertFChainTx %s", err)
@@ -211,6 +217,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 					tctx.Contract = common.HexStringReverse(states[5].(string))
 					tctx.RTxHash = common.HexStringReverse(states[1].(string))
 					tctx.Transfer = tctransfer
+					if !srv.IsMonitorChain(tctx.FChain) {
+						continue
+					}
 					err = srv.dao.TxInsertTChainTxAndCache(tx, tctx)
 					if err != nil {
 						log.Errorf("saveOntCrossTxsByHeight: InsertTChainTx %s", err)

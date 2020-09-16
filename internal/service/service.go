@@ -230,6 +230,11 @@ func (exp *Service) GetChain(chainId uint32) *model.ChainInfo {
 	return nil
 }
 
+func (exp *Service) IsMonitorChain(chainId uint32) bool {
+	chain := exp.GetChain(chainId)
+	return chain != nil
+}
+
 func (exp *Service) ChainId2Name(chainId uint32) string {
 	for _, chainInfo := range exp.chain {
 		if chainInfo.Id == chainId {
