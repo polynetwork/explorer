@@ -146,7 +146,7 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 	mChainTx := new(model.MChainTx)
 	tChainTx := new(model.TChainTx)
 	var err error
-	log.Debug("*********************GetCrossTx phase 1************************")
+	log.Infof("*********************GetCrossTx phase 1************************")
 	if fChainTx, err = exp.dao.FChainTx(hash, common.CHAIN_ETH); err != nil {
 		log.Errorf("GetCrossTx: get fChainTx %s", err)
 		return myerror.DB_CONNECTTION_FAILED, ""
@@ -166,7 +166,7 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 		}
 	}
 
-	log.Debug("*********************GetCrossTx phase 2************************")
+	log.Infof("*********************GetCrossTx phase 2************************")
 	if !crosstx.Fchaintx_valid {
 		if mChainTx, err = exp.dao.MChainTx(hash); err != nil {
 			return myerror.DB_CONNECTTION_FAILED, ""
@@ -187,7 +187,7 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 		}
 	}
 
-	log.Debug("*********************GetCrossTx phase 3************************")
+	log.Infof("*********************GetCrossTx phase 3************************")
 	if !(crosstx.Fchaintx_valid || crosstx.Mchaintx_valid) {
 		if tChainTx, err = exp.dao.TChainTx(hash); err != nil {
 			return myerror.DB_CONNECTTION_FAILED, ""
@@ -211,11 +211,11 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 		}
 	}
 
+	log.Infof("*********************GetCrossTx phase 4************************")
 	outputType := 0
-	log.Debug("*********************GetCrossTx phase 4************************")
 	if crosstx.Fchaintx_valid {
 		xx, _ := json.Marshal(fChainTx)
-		log.Debugf("f chain tx: %s", string(xx))
+		log.Infof("f chain tx: %s", string(xx))
 		crosstx.Transfer = exp.outputCrossTransfer(fChainTx.Chain, fChainTx.User, fChainTx.Transfer)
 		crosstx.Fchaintx = exp.outputFChainTx(fChainTx)
 		outputType = 1
@@ -223,14 +223,14 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 
 	if crosstx.Fchaintx_valid && crosstx.Mchaintx_valid {
 		xx, _ := json.Marshal(mChainTx)
-		log.Debugf("m chain tx: %s", string(xx))
+		log.Infof("m chain tx: %s", string(xx))
 		crosstx.Mchaintx = exp.outputMChainTx(mChainTx)
 		outputType = 2
 	}
 
 	if crosstx.Fchaintx_valid && crosstx.Mchaintx_valid && crosstx.Tchaintx_valid {
 		xx, _ := json.Marshal(tChainTx)
-		log.Debugf("t chain tx: %s", string(xx))
+		log.Infof("t chain tx: %s", string(xx))
 		crosstx.Tchaintx = exp.outputTChainTx(tChainTx)
 		outputType = 3
 	}
@@ -422,6 +422,9 @@ func (exp *Service) outputCrossTransfer(chainid uint32, user string, transfer *m
 		crossTransfer.TokenName = token.Name
 		crossTransfer.TokenType = token.Type
 		crossTransfer.Amount = exp.FormatAmount(token.Precision, transfer.Amount)
+	} else {
+		crossTransfer.TokenName = transfer.Asset
+		crossTransfer.Amount = transfer.Amount.String()
 	}
 	return crossTransfer
 }
@@ -458,6 +461,9 @@ func (exp *Service) outputFChainTx(fChainTx *model.FChainTx) *model.FChainTxResp
 			fChainTxResp.Transfer.TokenName = token.Name
 			fChainTxResp.Transfer.TokenType = token.Type
 			fChainTxResp.Transfer.Amount = exp.FormatAmount(token.Precision, fChainTx.Transfer.Amount)
+		} else {
+			fChainTxResp.Transfer.TokenName = fChainTx.Transfer.Asset
+			fChainTxResp.Transfer.Amount = fChainTx.Transfer.Amount.String()
 		}
 		totoken := exp.GetToken(fChainTx.Transfer.ToAsset)
 		fChainTxResp.Transfer.ToTokenHash = fChainTx.Transfer.ToAsset
@@ -465,6 +471,8 @@ func (exp *Service) outputFChainTx(fChainTx *model.FChainTx) *model.FChainTxResp
 			fChainTxResp.Transfer.ToTokenHash = totoken.Hash
 			fChainTxResp.Transfer.ToTokenName = totoken.Name
 			fChainTxResp.Transfer.ToTokenType = totoken.Type
+		} else {
+			fChainTxResp.Transfer.ToTokenName = fChainTx.Transfer.ToAsset
 		}
 	}
 	if fChainTx.Chain == common.CHAIN_ETH {
@@ -521,6 +529,9 @@ func (exp *Service) outputTChainTx(tChainTx *model.TChainTx) *model.TChainTxResp
 			tChainTxResp.Transfer.TokenName = token.Name
 			tChainTxResp.Transfer.TokenType = token.Type
 			tChainTxResp.Transfer.Amount = exp.FormatAmount(token.Precision, tChainTx.Transfer.Amount)
+		} else {
+			tChainTxResp.Transfer.TokenName = tChainTx.Transfer.Asset
+			tChainTxResp.Transfer.Amount = tChainTx.Transfer.Amount.String()
 		}
 	}
 	if tChainTx.Chain == common.CHAIN_ETH {
