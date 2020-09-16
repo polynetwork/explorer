@@ -216,7 +216,7 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 	if crosstx.Fchaintx_valid {
 		xx, _ := json.Marshal(fChainTx)
 		log.Infof("f chain tx: %s", string(xx))
-		crosstx.Transfer = exp.outputCrossTransfer(fChainTx.Chain, fChainTx.User, fChainTx.Transfer)
+		crosstx.Transfer = exp.outputCrossTransfer(fChainTx.Chain, fChainTx.User, fChainTx.TT, fChainTx.Transfer)
 		crosstx.Fchaintx = exp.outputFChainTx(fChainTx)
 		outputType = 1
 	}
@@ -403,13 +403,14 @@ func (exp *Service) outputCrossChainTxStatus1(status []*model.CrossChainTxStatus
 	return status_new
 }
 
-func (exp *Service) outputCrossTransfer(chainid uint32, user string, transfer *model.FChainTransfer) *model.CrossTransferResp {
+func (exp *Service) outputCrossTransfer(chainid uint32, user string, tt uint32, transfer *model.FChainTransfer) *model.CrossTransferResp {
 	if transfer == nil {
 		return nil
 	}
 	crossTransfer := new(model.CrossTransferResp)
 	crossTransfer.CrossTxType = 1
 	crossTransfer.CrossTxName = exp.TxType2Name(crossTransfer.CrossTxType)
+	crossTransfer.TT = tt
 	crossTransfer.FromChainId = chainid
 	crossTransfer.FromChain = exp.ChainId2Name(crossTransfer.FromChainId)
 	crossTransfer.FromAddress = user

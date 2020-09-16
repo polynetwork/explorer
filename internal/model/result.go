@@ -172,6 +172,7 @@ type TChainTransferResp struct {
 type CrossTransferResp struct {
 	CrossTxType  uint32 `json:"crosstxtype"`
 	CrossTxName  string `json:"crosstxname"`
+	TT           uint32    `json:"timestamp"`
 	FromChainId  uint32 `json:"fromchainid"`
 	FromChain    string `json:"fromchainname"`
 	FromAddress  string `json:"fromaddress"`
