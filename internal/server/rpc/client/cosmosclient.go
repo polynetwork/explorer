@@ -76,19 +76,25 @@ func NewCDC() *codec.Codec {
 	return cdc
 }
 
+func (client *CosmosClient) NextClient() int {
+	client.node ++
+	client.node = client.node % len(client.urls)
+	httpclient, err := tmclient.New(client.urls[client.node], "/websocket")
+	if err != nil {
+		log.Errorf("new cosmos client err:%s", err.Error())
+	}
+	client.client = httpclient
+	return client.node
+}
+
 func (client *CosmosClient) Status() (*ctypes.ResultStatus, error) {
 	cur := client.node
 	result, err := client.client.Status()
 	for err != nil || result == nil {
 		log.Errorf("CosmosClient.Status err:%s, url: %s", err.Error(), client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return nil, fmt.Errorf("all node is not working!")
-		}
-		client.client, err = tmclient.New(client.urls[client.node], "/websocket")
-		if err != nil {
-			panic(err)
 		}
 		result, err = client.client.Status()
 	}
@@ -100,14 +106,9 @@ func (client *CosmosClient) Block(height *int64) (*ctypes.ResultBlock, error) {
 	result, err := client.client.Block(height)
 	for err != nil || result == nil {
 		log.Errorf("CosmosClient.Block err:%s, url: %s", err.Error(), client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return nil, fmt.Errorf("all node is not working!")
-		}
-		client.client, err = tmclient.New(client.urls[client.node], "/websocket")
-		if err != nil {
-			panic(err)
 		}
 		result, err = client.client.Block(height)
 	}
@@ -119,14 +120,9 @@ func (client *CosmosClient) TxSearch(query string, prove bool, page, perPage int
 	result, err := client.client.TxSearch(query, prove, page, perPage, orderBy)
 	for err != nil || result == nil {
 		log.Errorf("CosmosClient.TxSearch err:%s, url: %s", err.Error(), client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return nil, fmt.Errorf("all node is not working!")
-		}
-		client.client, err = tmclient.New(client.urls[client.node], "/websocket")
-		if err != nil {
-			panic(err)
 		}
 		result, err = client.client.TxSearch(query, prove, page, perPage, orderBy)
 	}

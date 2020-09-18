@@ -15,6 +15,7 @@ require (
 	github.com/ontio/ontology v1.11.0
 	github.com/ontio/ontology-go-sdk v1.11.1
 	github.com/pkg/errors v0.9.1
+	github.com/polynetwork/cosmos-poly-module v0.0.0-20200827085015-12374709b707
 	github.com/polynetwork/poly v0.0.0-20200818035458-8083385c9933
 	github.com/polynetwork/poly-go-sdk v0.0.0-20200817120957-365691ad3493
 	github.com/shopspring/decimal v1.2.0

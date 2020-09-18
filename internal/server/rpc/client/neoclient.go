@@ -39,14 +39,20 @@ func NewNeoClient(c *conf.Config) (client *NeoClient) {
 	}
 }
 
+func (client *NeoClient) NextClient() int {
+	client.node ++
+	client.node = client.node % len(client.urls)
+	client.client = rpc.NewClient(client.urls[client.node])
+	return client.node
+}
+
 func (client *NeoClient) GetBlockCount() rpc.GetBlockCountResponse {
 	cur := client.node
 	res := client.client.GetBlockCount()
 	for res.ErrorResponse.Error.Message != "" {
 		log.Errorf("NeoClient.GetBlockCount err:%s, url: %s", res.ErrorResponse.Error.Message, client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return rpc.GetBlockCountResponse{
 				ErrorResponse: rpc.ErrorResponse{
 					Error : rpc.RpcError {
@@ -57,7 +63,6 @@ func (client *NeoClient) GetBlockCount() rpc.GetBlockCountResponse {
 				},
 			}
 		}
-		client.client = rpc.NewClient(client.urls[client.node])
 		res = client.client.GetBlockCount()
 	}
 	return res
@@ -68,9 +73,8 @@ func (client *NeoClient) GetBlockByIndex(index uint32) rpc.GetBlockResponse {
 	res := client.client.GetBlockByIndex(index)
 	for res.ErrorResponse.Error.Message != "" {
 		log.Errorf("NeoClient.GetBlockByIndex err:%s, url: %s", res.ErrorResponse.Error.Message, client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return rpc.GetBlockResponse{
 				ErrorResponse: rpc.ErrorResponse{
 					Error : rpc.RpcError {
@@ -81,7 +85,6 @@ func (client *NeoClient) GetBlockByIndex(index uint32) rpc.GetBlockResponse {
 				},
 			}
 		}
-		client.client = rpc.NewClient(client.urls[client.node])
 		res = client.client.GetBlockByIndex(index)
 	}
 	return res
@@ -92,9 +95,8 @@ func (client *NeoClient) GetApplicationLog(txId string) rpc.GetApplicationLogRes
 	res := client.client.GetApplicationLog(txId)
 	for res.ErrorResponse.Error.Message != "" {
 		log.Errorf("NeoClient.GetApplicationLog err:%s, url: %s", res.ErrorResponse.Error.Message, client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return rpc.GetApplicationLogResponse{
 				ErrorResponse: rpc.ErrorResponse{
 					Error : rpc.RpcError {
@@ -105,7 +107,6 @@ func (client *NeoClient) GetApplicationLog(txId string) rpc.GetApplicationLogRes
 				},
 			}
 		}
-		client.client = rpc.NewClient(client.urls[client.node])
 		res = client.client.GetApplicationLog(txId)
 	}
 	return res

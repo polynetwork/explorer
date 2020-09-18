@@ -42,19 +42,24 @@ func NewOntologySDK(c *conf.Config) *OntologySDK {
 	}
 }
 
+func (client *OntologySDK) NextClient() int {
+	client.node ++
+	client.node = client.node % len(client.urls)
+	rawsdk := sdk.NewOntologySdk()
+	rawsdk.NewRpcClient().SetAddress(client.urls[client.node])
+	client.sdk = rawsdk
+	return client.node
+}
+
 func (client *OntologySDK) GetCurrentBlockHeight() (uint32, error) {
 	cur := client.node
 	height, err := client.sdk.GetCurrentBlockHeight()
 	for err != nil {
 		log.Errorf("OntologySDK.GetCurrentBlockHeight err:%s, url: %s", err.Error(), client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return 0, fmt.Errorf("all node is not working!")
 		}
-		rawsdk := sdk.NewOntologySdk()
-		rawsdk.NewRpcClient().SetAddress(client.urls[client.node])
-		client.sdk = rawsdk
 		height, err = client.sdk.GetCurrentBlockHeight()
 	}
 	return height, err
@@ -65,14 +70,10 @@ func (client *OntologySDK) GetBlockByHeight(height uint32) (*types.Block, error)
 	block, err := client.sdk.GetBlockByHeight(height)
 	for err != nil {
 		log.Errorf("OntologySDK.GetBlockByHeight err:%s, url: %s", err.Error(), client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return nil, fmt.Errorf("all node is not working!")
 		}
-		rawsdk := sdk.NewOntologySdk()
-		rawsdk.NewRpcClient().SetAddress(client.urls[client.node])
-		client.sdk = rawsdk
 		block, err = client.sdk.GetBlockByHeight(height)
 	}
 	return block, err
@@ -83,14 +84,10 @@ func (client *OntologySDK) GetSmartContractEventByBlock(height uint32) ([]*sdkco
 	event, err := client.sdk.GetSmartContractEventByBlock(height)
 	for err != nil {
 		log.Errorf("OntologySDK.GetBlockByHeight err:%s, url: %s", err.Error(), client.urls[client.node])
-		client.node ++
-		client.node = client.node % len(client.urls)
-		if client.node == cur {
+		next := client.NextClient()
+		if next == cur {
 			return nil, fmt.Errorf("all node is not working!")
 		}
-		rawsdk := sdk.NewOntologySdk()
-		rawsdk.NewRpcClient().SetAddress(client.urls[client.node])
-		client.sdk = rawsdk
 		event, err = client.sdk.GetSmartContractEventByBlock(height)
 	}
 	return event, err
