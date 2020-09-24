@@ -88,6 +88,84 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Bitcoin", "46c3051c553aaeb3724ea69336ec483f39fa91b1", "prenBTC", "OEP4", "100000000","renBTC");
 
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Wing", "db0f18081b505a7de20b18ac41856bcb4ba86a1a", "pWING", "ERC20", "1000000000","Wing");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Wing", "00c59fcd27a562d6397883eab1f2fff56e58ef80", "Wing Token (WING)", "OEP4", "1000000000","Wing");
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "SUSD", "57ab1ec28d129707052df4df418d58a2d46d5f51", "Synth sUSD", "ERC20", "1000000000000000000","sUSD");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "SUSD", "17a58a4a65959c2f567e5063c560f9d09fb81284", "psUSD", "OEP4", "1000000000000000000","sUSD");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "PAX", "8e870d67f660d95d5be530380d0ec0bd388289e1", "Paxos Standard", "ERC20", "1000000000000000000","PAX");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "PAX", "0dabee6055a1c17e3b4bcb15af1a713605b7fcfc", "pPAX", "OEP4", "1000000000000000000","PAX");
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "NEO", "381225768DD2bd60D70482B51109D0DEFeE92503", "Poly NEO Token", "ERC20", "1000000000","pNEO");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "NEO", "9a576d927dda934b8ce69f35ec2c1025ceb10e6f", "pNEO", "OEP4", "1000000000","pNEO");
+
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "Ethereum", "17c76859c11bc14da5b3e9c88fa695513442c606", "nETH", "NEP5", "1000000000000000000","Ethereum");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "Ontology", "271e1e4616158c7440ffd1d5ca51c0c12c792833", "nONT", "NEP5", "1000000000","Ontology");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "Ethereum", "0df563008be710f3e0130208f8adc95ed7e5518d", "pnWETH", "NEP5", "1000000000000","WETH");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Ethereum", "e179198fd42f5de1a04ffd9a36d6dc428ceb13f7", "nWETH", "ERC20", "1000000000000","WETH");
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "NEO", "f46719e2d16bf50cddcef9d4bbfece901f73cbb6", "nNEO", "NEP5", "100000000","nNEO");
+
+
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "Ontology", "c277117879af3197fbef92c71e95800aa3b89d9a", "pONT", "NEP5", "1000000000","ONT");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "Tether", "282e3340d5a1cd6a461d5f558d91bc1dbc02a07b", "pnUSDT", "NEP5", "1000000","USDT");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Tether", "2205d2f559ef91580090011aa4e0ef68ec33da44", "nUSDT", "ERC20", "1000000","USDT");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "Bitcoin", "534dcac35b0dfadc7b2d716a7a73a7067c148b37", "pnWBTC", "NEP5", "100000000","pnWBTC");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "bb44b36e588445d7da61a1e2e426664d03d40888", "nWBTC", "ERC20", "100000000","nWBTC");
+
+
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Dai", "7b956c0c11fcffb9c9227ca1925ba4c3486b36f1", "pDAI", "OEP4", "1000000000000000000","DAI");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Ethereum", "df19600d334bb13c6a9e3e9777aa8ec6ed6a4a79", "pETH", "OEP4", "1000000000000000000","pETH");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Tether", "ac654837a90eee8fccabd87a2d4fc7637484f01a", "pUSDT", "OEP4", "1000000","pUSDT");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "7757ffe3ac09bc6430f6896f720e77cf80ec1f74", "nrenBTC", "ERC20", "100000000","nrenBTC");
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "2dd56dc238d1fc2f9aac3793a287f4e0af1b08b4", "nsBTC", "ERC20", "10000000000000000","nsBTC");
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "TUSD", "886f6F287Bb2eA7DE03830a5FD339EDc107c559f", "nTUSD", "ERC20", "10000000000000000","nTUSD");
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "USD Coin", "7f0ad0525cb8c17d3f5c06ceb0aea20fa0d2ca0a", "nUSDC", "ERC20", "1000000","nUSDC");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Dai", "7245ded8459f59b0a680640535476c11b3cd0ef6", "nDAI", "ERC20", "10000000000000000","nDAI");
+
+
+
+
 DROP TABLE IF EXISTS `poly_validators`;
 CREATE TABLE `poly_validators` (
   `height` INT(12) NOT NULL COMMENT '交易的高度',

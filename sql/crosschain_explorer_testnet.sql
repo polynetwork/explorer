@@ -130,6 +130,24 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Bitcoin", "ec547bc4486dea97cb659f1fe73407922f9e63c8", "pRENBTC", "OEP4", "100000000","RENBTC");
 
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Oep4", "3105a14f7956d33a51f12ef3ae50a3f1ef161dff", "EOEP4", "ERC20", "1000000000","EOEP4");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Oep4", "969850e009b5e2a061694f3479ec8e44bc68bcd3", "EOEP4", "OEP4", "1000000000","EOEP4");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "WING", "b60e03e6973b1d0b90a763f5b64c48ca7cb8c2d1", "pWING", "ERC20", "1000000000","WING");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "WING", "ff31ec74d01f7b7d45ed2add930f5d2239f7de33", "WING", "OEP4", "1000000000","WING");
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "PAX", "825c227b07153ea450a6607e35c2bf70a9b2fe47", "pPAX", "ERC20", "1000000000","PAX");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "PAX", "5cb420480614fc635f7bfa7f3bd2cd5484004545", "pPAX", "OEP4", "1000000000","PAX");
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "SUSD", "21718c0fbd10900565fa57c76e1862cd3f6a4d8e", "SUSD", "ERC20", "1000000000000000000","SUSD");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "SUSD", "37f4497b6f5f511e73843a0bda1042777666f7ec", "pSUSD", "OEP4", "1000000000000000000","SUSD");
+
+
 
 DROP TABLE IF EXISTS `poly_validators`;
 CREATE TABLE `poly_validators` (
