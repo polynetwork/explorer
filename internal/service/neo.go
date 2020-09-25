@@ -143,10 +143,19 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 								fctransfer.To = srv.Hash2Address(common.CHAIN_NEO, notify.State.Value[2].Value)
 								fctransfer.Asset = common.HexStringReverse(notifynew.State.Value[1].Value)
 								//amount, _ := strconv.ParseUint(common.HexStringReverse(notifynew.State.Value[6].Value), 16, 64)
-								amount, _ := new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[6].Value), 16)
+								amount := big.NewInt(0)
+								if notifynew.State.Value[6].Type == "Integer" {
+									data, _ := strconv.ParseUint(notifynew.State.Value[6].Value, 10, 64)
+									amount = amount.SetInt64(int64(data))
+								} else {
+									amount, _ = new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[6].Value), 16)
+								}
 								fctransfer.Amount = amount
 								tchainId, _ := strconv.ParseUint(notifynew.State.Value[3].Value, 10, 32)
 								fctransfer.ToChain = uint32(tchainId)
+								if len(notifynew.State.Value[5].Value) != 40 {
+									continue
+								}
 								fctransfer.ToUser = srv.Hash2Address(uint32(tchainId), notifynew.State.Value[5].Value)
 								if uint32(tchainId) == srv.c.Bitcoin.ChainId {
 									fctransfer.ToAsset = common.BTC_TOKEN_HASH
@@ -198,7 +207,13 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 								tctransfer.To = srv.Hash2Address(common.CHAIN_NEO, notifynew.State.Value[2].Value)
 								tctransfer.Asset = common.HexStringReverse(notifynew.State.Value[1].Value)
 								//amount, _ := strconv.ParseUint(common.HexStringReverse(notifynew.State.Value[3].Value), 16, 64)
-								amount, _ := new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[3].Value), 16)
+								amount := big.NewInt(0)
+								if notifynew.State.Value[3].Type == "Integer" {
+									data, _ := strconv.ParseUint(notifynew.State.Value[3].Value, 10, 64)
+									amount = amount.SetInt64(int64(data))
+								} else {
+									amount, _ = new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[3].Value), 16)
+								}
 								tctransfer.Amount = amount
 								break
 							}

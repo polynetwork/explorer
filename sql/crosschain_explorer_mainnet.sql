@@ -151,18 +151,22 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "7757ffe3ac09bc6430f6896f720e77cf80ec1f74", "nrenBTC", "ERC20", "100000000","nrenBTC");
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "2dd56dc238d1fc2f9aac3793a287f4e0af1b08b4", "nsBTC", "ERC20", "10000000000000000","nsBTC");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "2dd56dc238d1fc2f9aac3793a287f4e0af1b08b4", "nsBTC", "ERC20", "1000000000000000000","nsBTC");
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "TUSD", "886f6F287Bb2eA7DE03830a5FD339EDc107c559f", "nTUSD", "ERC20", "10000000000000000","nTUSD");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "TUSD", "886f6F287Bb2eA7DE03830a5FD339EDc107c559f", "nTUSD", "ERC20", "1000000000000000000","nTUSD");
 
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "USD Coin", "7f0ad0525cb8c17d3f5c06ceb0aea20fa0d2ca0a", "nUSDC", "ERC20", "1000000","nUSDC");
 
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Dai", "7245ded8459f59b0a680640535476c11b3cd0ef6", "nDAI", "ERC20", "10000000000000000","nDAI");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Dai", "7245ded8459f59b0a680640535476c11b3cd0ef6", "nDAI", "ERC20", "1000000000000000000","nDAI");
 
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "UNI", "6c5fa7a3c2cd98a689b1305bd38b56120fe15744", "normalized Uniswap V2", "ERC20", "1000000000000000000","nUNI-V2");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "UNI", "c534d65c85c074887f58ed1f3bad7dfd739a525e", "pnUNI_V2_ETH_WBTC NEP5", "NEP5", "1000000000000000000","nUNI-V2");
 
 
 
