@@ -618,16 +618,8 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 	addressNumberTotal := uint32(0)
 	txNumTotal := uint32(0)
 	for _, assetStatistic := range assetStatistics {
-		precision := exp.GetTokenPrecision(assetStatistic.Name)
-
-		amount_btc := assetStatistic.Amount_btc
-		amount_btc.Div(amount_btc, big.NewInt(int64(precision)))
-		amountBtcTotal.Add(amountBtcTotal, amount_btc)
-
-		amount_usd := assetStatistic.Amount_usd
-		amount_usd.Div(amount_usd, big.NewInt(int64(precision)))
-		amountUsdTotal.Add(amountUsdTotal, amount_usd)
-
+		amountBtcTotal.Add(amountBtcTotal, assetStatistic.Amount_btc)
+		amountUsdTotal.Add(amountUsdTotal, assetStatistic.Amount_usd)
 		addressNumberTotal += assetStatistic.Addressnum
 		txNumTotal += assetStatistic.TxNum
 	}
@@ -636,23 +628,15 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 	assetInfo.AmountUsdTotal = exp.FormatAmount(uint64(1), amountUsdTotal)
 
 	for _, assetStatistic := range assetStatistics {
-		precision := exp.GetTokenPrecision(assetStatistic.Name)
-
-		amount_btc := assetStatistic.Amount_btc
-		amount_btc.Div(amount_btc, big.NewInt(int64(precision)))
-
-		amount_usd := assetStatistic.Amount_usd
-		amount_usd.Div(amount_usd, big.NewInt(int64(precision)))
-
 		assetStatisticResp := &model.AssetStatisticResp{
 			Name: assetStatistic.Name,
 			Addressnum: assetStatistic.Addressnum,
 			AddressnumPrecent: exp.Precent(uint64(assetStatistic.Addressnum), uint64(addressNumberTotal)),
-			Amount: exp.FormatAmount(precision, assetStatistic.Amount),
-			Amount_btc: exp.FormatAmount(precision, assetStatistic.Amount_btc),
-			AmountBtcPrecent: exp.Precent(amount_btc.Uint64(), amountBtcTotal.Uint64()),
-			Amount_usd: exp.FormatAmount(precision, assetStatistic.Amount_usd),
-			AmountUsdPrecent: exp.Precent(amount_usd.Uint64(), amountUsdTotal.Uint64()),
+			Amount: exp.FormatAmount(uint64(1), assetStatistic.Amount),
+			Amount_btc: exp.FormatAmount(uint64(1), assetStatistic.Amount_btc),
+			AmountBtcPrecent: exp.Precent(assetStatistic.Amount_btc.Uint64(), amountBtcTotal.Uint64()),
+			Amount_usd: exp.FormatAmount(uint64(1), assetStatistic.Amount_usd),
+			AmountUsdPrecent: exp.Precent(assetStatistic.Amount_usd.Uint64(), amountUsdTotal.Uint64()),
 			TxNum: assetStatistic.TxNum,
 			TxNumPrecent: exp.Precent(uint64(assetStatistic.TxNum), uint64(txNumTotal)),
 			LatestUpdate: assetStatistic.LatestUpdate,

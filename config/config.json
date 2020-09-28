@@ -28,7 +28,7 @@
   },
   "coinmarketcap": {
     "url": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/",
-    "appkey": "8c175886-3aec-4276-8961-1f0ce06ab69e"
+    "appkey": "8efe5156-8b37-4c77-8e1d-a140c97bf466"
   },
   "neo": {
     "name": "neo",

@@ -168,9 +168,9 @@ DROP TABLE IF EXISTS `asset_statistic`;
 CREATE TABLE `asset_statistic` (
   `xname` VARCHAR(16)  COMMENT '资产名称',
   `addressnum`   INT(4) NOT NULL COMMENT '资产的总地址数',
-  `amount`       VARCHAR(32)  NOT NULL COMMENT '资产的总价值',
-  `amount_btc`   VARCHAR(32)  NOT NULL COMMENT '资产的总价值',
-  `amount_usd`   VARCHAR(32)  NOT NULL COMMENT '资产的总价值',
+  `amount`       BIGINT(8)  NOT NULL COMMENT '资产的总价值',
+  `amount_btc`   BIGINT(8)  NOT NULL COMMENT '资产的总价值',
+  `amount_usd`   BIGINT(8)  NOT NULL COMMENT '资产的总价值',
   `txnum`       INT(4) NOT NULL COMMENT '总的交易个数',
   `latestupdate` INT(4)  NOT NULL COMMENT '统计数据的时间点',
   PRIMARY KEY (`xname`)

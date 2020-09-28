@@ -16,7 +16,7 @@ type CoinMarketCapSdk struct {
 
 func DefaultCoinMarketCapSdk() *CoinMarketCapSdk {
 	//return NewCoinMarketCapSdk("https://api.coinmarketcap.com/v2")
-	return NewCoinMarketCapSdk("https://pro-api.coinmarketcap.com/v1/cryptocurrency/", "8c175886-3aec-4276-8961-1f0ce06ab69e")
+	return NewCoinMarketCapSdk("https://pro-api.coinmarketcap.com/v1/cryptocurrency/", "8efe5156-8b37-4c77-8e1d-a140c97bf466")
 }
 
 func NewCoinMarketCapSdk(url string, key string) *CoinMarketCapSdk {

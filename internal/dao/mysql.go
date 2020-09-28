@@ -60,12 +60,12 @@ const (
 	_selectAddressTxTotal           = "select sum(cnt) from (select count(*) as cnt from fchain_transfer a left join fchain_tx b on a.txhash = b.txhash where a.xfrom = ? and b.chain_id = ? union all select count(*) as cnt from tchain_transfer c left join tchain_tx d on c.txhash = d.txhash where c.xto = ? and d.chain_id = ?) t"
 	_insertPolyValidator            = "insert into poly_validators(height, validators) values(?,?)"
 	_selectPolyValidator            = "select height, validators from poly_validators order by height desc limit 1"
-	_insertAssetStatistic           = "insert into asset_statistic(xname, addressnum, amount,amount_btc, amount_usd, txnum, latestupdate) values (?,0,\"\",\"\",\"\",0,0) ON DUPLICATE KEY UPDATE txnum=txnum"
+	_insertAssetStatistic           = "insert into asset_statistic(xname, addressnum, amount,amount_btc, amount_usd, txnum, latestupdate) values (?,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE txnum=txnum"
 	_selectAssetAddressNum          =  "select token, count(distinct addr) as addrNum from (select B.xtoken as token, A.xfrom as addr from fchain_transfer as A inner join chain_token as B on A.asset = B.hash union all select D.xtoken as token, C.xto as addr from tchain_transfer as C inner join chain_token as D on C.asset = D.hash) E group by E.token"
-	_selectAssetTxInfo              =  "select B.xtoken, sum(amount), count(*) from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? group by B.xtoken"
+	_selectAssetTxInfo              =  "select B.xtoken, amount from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? order by B.xtoken"
 	_updateStatistic                =  "update asset_statistic set addressnum = ?, amount = amount + ?, amount_btc = amount_btc + ?, amount_usd = amount_usd + ?, txnum = txnum + ?, latestupdate = ? where xname = ? and latestupdate = ?"
 	_selectAssetStatistic           =  "select xname, addressnum, amount, amount_btc, amount_usd, txnum, latestupdate from asset_statistic where latestupdate < ? order by amount_usd desc"
-	_selectAssetHistory             =  "select sum(A.amount), count(*) from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? and B.xtoken = ? group by B.xtoken"
+	_selectAssetHistory             =  "select A.amount from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? and B.xtoken = ?"
 )
 
 func (d *Dao) InsertTChainTx(t *model.TChainTx) (err error) {
@@ -563,19 +563,54 @@ func (d *Dao) SelectAssetAddressNum()  (res []*model.AssetAddressNum, err error)
 	return res, nil
 }
 
-func (d *Dao) SelectAssetTxInfo(start uint32, end uint32)  (res []*model.AssetTxInfo, err error) {
+type AssetTxInfo2 struct {
+	Name string
+	Amount string
+}
+
+func (d *Dao) SelectAssetTxInfo1(start uint32, end uint32)  (res []*AssetTxInfo2, err error) {
 	var rows *sql.Rows
 	if rows, err = d.db.Query(_selectAssetTxInfo, start, end); err != nil {
 		return
 	}
 	defer rows.Close()
 	for rows.Next() {
-		r := new(model.AssetTxInfo)
-		if err = rows.Scan(&r.Name, &r.Amount, &r.TxNum); err != nil {
+		r := new(AssetTxInfo2)
+		if err = rows.Scan(&r.Name, &r.Amount); err != nil {
 			res = nil
 			return
 		}
 		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectAssetTxInfo(start uint32, end uint32)  (res []*model.AssetTxInfo, err error) {
+	oriRes, err := d.SelectAssetTxInfo1(start, end)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	r := new(model.AssetTxInfo)
+	r.Name = ""
+	r.Amount = big.NewInt(0)
+	r.TxNum = 0
+	for _, item := range oriRes {
+		if item.Name != r.Name {
+			if r.Name != "" && r.TxNum != 0 {
+				res = append(res, r)
+				r = new(model.AssetTxInfo)
+				r.Name = item.Name
+				r.Amount = big.NewInt(0)
+				r.TxNum = 0
+			}
+		}
+		r.Name = item.Name
+		r.TxNum ++
+		amount, _ := new(big.Int).SetString(item.Amount, 10)
+		r.Amount = new(big.Int).Add(r.Amount, amount)
 	}
 	return res, nil
 }
@@ -617,14 +652,42 @@ func (d *Dao) SelectAssetStatistic(tt uint32) (res []*model.AssetStatistic, err 
 	return res, nil
 }
 
+type AssetTxInfo1 struct {
+	Amount  string
+}
+
+func (d *Dao) SelectAssetHistory1(start uint32, end uint32, name string) (res []*AssetTxInfo1, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAssetHistory, start, end, name); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(AssetTxInfo1)
+		if err = rows.Scan(&r.Amount); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
 func (d *Dao) SelectAssetHistory(start uint32, end uint32, name string)  (res *model.AssetTxInfo, err error) {
 	res = new(model.AssetTxInfo)
 	res.Name = name
-	row := d.db.QueryRow(_selectAssetHistory, start, end, name)
-	if err = row.Scan(&res.Amount, &res.TxNum); err != nil {
-		if err == sql.ErrNoRows {
-			err = nil
-		}
+	res.Amount = big.NewInt(0)
+	oriRes, err := d.SelectAssetHistory1(start, end, name)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	for _, item := range oriRes {
+		amount, _ := new(big.Int).SetString(item.Amount, 10)
+		res.Amount = new(big.Int).Add(res.Amount, amount)
+		res.TxNum ++
 	}
 	return
 }

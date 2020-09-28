@@ -5,6 +5,7 @@ import (
 	"github.com/polynetwork/explorer/internal/coinmarketcap"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math"
 	"math/big"
 	"time"
 )
@@ -32,10 +33,12 @@ func (srv *Service) DoStatistic() {
 	//
 	needUpdatedHistory := srv.checkHistory(start)
 	if needUpdatedHistory != nil {
+		needUpdatedHistory := srv.updatePrecision(needUpdatedHistory)
 		err := srv.updateAssetStatisticsByCoinPrice(needUpdatedHistory, coinPrice)
 		if err != nil {
 			return
 		}
+		srv.checkAssetStatistics(needUpdatedHistory)
 	}
 	srv.dao.UpdateAssetStatistics(needUpdatedHistory, start)
 	//
@@ -43,10 +46,12 @@ func (srv *Service) DoStatistic() {
 	if latestUpdated == nil {
 		return
 	}
+	latestUpdated = srv.updatePrecision(latestUpdated)
 	err := srv.updateAssetStatisticsByCoinPrice(latestUpdated, coinPrice)
 	if err != nil {
 		return
 	}
+	srv.checkAssetStatistics(latestUpdated)
 	srv.dao.UpdateAssetStatistics(latestUpdated, end)
 }
 
@@ -64,6 +69,11 @@ func (srv *Service) checkHistory(tt uint32) (res []*model.AssetStatistic) {
 		if err != nil {
 			log.Errorf("SelectAssetHistory err: %s", err.Error())
 			assetStatistic.LatestUpdate = 1
+			continue
+		}
+		if assetTxInfo == nil {
+			assetStatistic.TxNum = 0
+			assetStatistic.Amount = big.NewInt(0)
 			continue
 		}
 		if assetTxInfo.Name == "" || assetTxInfo.TxNum == 0 {
@@ -202,4 +212,35 @@ func (srv *Service) latestUpdated(start uint32, end uint32) (res []*model.AssetS
 		}
 	}
 	return assetStatistics
+}
+
+func (srv *Service) updatePrecision(assetStatistics []*model.AssetStatistic) []*model.AssetStatistic {
+	res := make([]*model.AssetStatistic, 0)
+	for _, item := range assetStatistics {
+		precision := srv.GetTokenPrecision(item.Name)
+		if precision == 0 {
+			log.Errorf("updatePrecision err, the precision of  token: %s is missing", item.Name)
+			continue
+		}
+		item.Amount = item.Amount.Div(item.Amount, big.NewInt(int64(precision)))
+		res = append(res, item)
+	}
+	return res
+}
+
+func (srv *Service) checkAssetStatistics(assetStatistics []*model.AssetStatistic) {
+	for _, item := range assetStatistics {
+		if item.Amount.Int64() > math.MaxInt64 {
+			log.Errorf("checkAssetStatistics err, the amount of  token: %s is too big", item.Name)
+			item.Amount.SetInt64(math.MaxInt64)
+		}
+		if item.Amount_btc.Int64() > math.MaxInt64 {
+			log.Errorf("checkAssetStatistics err, the btc amount of  token: %s is too big", item.Name)
+			item.Amount_btc.SetInt64(math.MaxInt64)
+		}
+		if item.Amount_usd.Int64() > math.MaxInt64 {
+			log.Errorf("checkAssetStatistics err, the amount of  token: %s is too big", item.Name)
+			item.Amount_usd.SetInt64(math.MaxInt64)
+		}
+	}
 }
