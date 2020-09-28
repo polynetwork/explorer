@@ -629,7 +629,7 @@ func (d *Dao) UpdateAssetStatistics(assetStatistics []*model.AssetStatistic, tt 
 }
 
 func (d *Dao) UpdateAssetStatistic(assetStatistic *model.AssetStatistic, tt uint32) (err error) {
-	if _, err = d.db.Exec(_updateStatistic, assetStatistic.Addressnum, assetStatistic.Amount, assetStatistic.Amount_btc, assetStatistic.Amount_usd,assetStatistic.TxNum, tt, assetStatistic.Name, assetStatistic.LatestUpdate); err != nil {
+	if _, err = d.db.Exec(_updateStatistic, assetStatistic.Addressnum, assetStatistic.Amount.Int64(), assetStatistic.Amount_btc.Int64(), assetStatistic.Amount_usd.Int64(),assetStatistic.TxNum, tt, assetStatistic.Name, assetStatistic.LatestUpdate); err != nil {
 		return err
 	}
 	return nil
@@ -643,10 +643,16 @@ func (d *Dao) SelectAssetStatistic(tt uint32) (res []*model.AssetStatistic, err 
 	defer rows.Close()
 	for rows.Next() {
 		r := new(model.AssetStatistic)
-		if err = rows.Scan(&r.Name, &r.Addressnum, &r.Amount, &r.Amount_btc, &r.Amount_usd, &r.TxNum, &r.LatestUpdate); err != nil {
+		Amount := int64(0)
+		Amount_btc := int64(0)
+		Amount_usd := int64(0)
+		if err = rows.Scan(&r.Name, &r.Addressnum, &Amount, &Amount_btc, &Amount_usd, &r.TxNum, &r.LatestUpdate); err != nil {
 			res = nil
 			return
 		}
+		r.Amount = new(big.Int).SetInt64(Amount)
+		r.Amount_btc = new(big.Int).SetInt64(Amount_btc)
+		r.Amount_usd = new(big.Int).SetInt64(Amount_usd)
 		res = append(res, r)
 	}
 	return res, nil

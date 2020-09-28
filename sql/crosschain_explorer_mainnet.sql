@@ -92,15 +92,15 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Wing", "00c59fcd27a562d6397883eab1f2fff56e58ef80", "Wing Token (WING)", "OEP4", "1000000000","Wing");
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "SUSD", "57ab1ec28d129707052df4df418d58a2d46d5f51", "Synth sUSD", "ERC20", "1000000000000000000","sUSD");
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "SUSD", "17a58a4a65959c2f567e5063c560f9d09fb81284", "psUSD", "OEP4", "1000000000000000000","sUSD");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "sUSD", "57ab1ec28d129707052df4df418d58a2d46d5f51", "Synth sUSD", "ERC20", "1000000000000000000","sUSD");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "sUSD", "17a58a4a65959c2f567e5063c560f9d09fb81284", "psUSD", "OEP4", "1000000000000000000","sUSD");
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "PAX", "8e870d67f660d95d5be530380d0ec0bd388289e1", "Paxos Standard", "ERC20", "1000000000000000000","PAX");
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "PAX", "0dabee6055a1c17e3b4bcb15af1a713605b7fcfc", "pPAX", "OEP4", "1000000000000000000","PAX");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Paxos Standard", "8e870d67f660d95d5be530380d0ec0bd388289e1", "Paxos Standard", "ERC20", "1000000000000000000","PAX");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Paxos Standard", "0dabee6055a1c17e3b4bcb15af1a713605b7fcfc", "pPAX", "OEP4", "1000000000000000000","PAX");
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "NEO", "381225768DD2bd60D70482B51109D0DEFeE92503", "Poly NEO Token", "ERC20", "1000000000","pNEO");
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "NEO", "9a576d927dda934b8ce69f35ec2c1025ceb10e6f", "pNEO", "OEP4", "1000000000","pNEO");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Neo", "381225768DD2bd60D70482B51109D0DEFeE92503", "Poly NEO Token", "ERC20", "1000000000","pNEO");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Neo", "9a576d927dda934b8ce69f35ec2c1025ceb10e6f", "pNEO", "OEP4", "1000000000","pNEO");
 
 
 
@@ -114,7 +114,7 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Ethereum", "e179198fd42f5de1a04ffd9a36d6dc428ceb13f7", "nWETH", "ERC20", "1000000000000","WETH");
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "NEO", "f46719e2d16bf50cddcef9d4bbfece901f73cbb6", "nNEO", "NEP5", "100000000","nNEO");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "Neo", "f46719e2d16bf50cddcef9d4bbfece901f73cbb6", "nNEO", "NEP5", "100000000","nNEO");
 
 
 
@@ -154,7 +154,7 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "2dd56dc238d1fc2f9aac3793a287f4e0af1b08b4", "nsBTC", "ERC20", "1000000000000000000","nsBTC");
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "TUSD", "886f6F287Bb2eA7DE03830a5FD339EDc107c559f", "nTUSD", "ERC20", "1000000000000000000","nTUSD");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "TrueUSD", "886f6F287Bb2eA7DE03830a5FD339EDc107c559f", "nTUSD", "ERC20", "1000000000000000000","nTUSD");
 
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "USD Coin", "7f0ad0525cb8c17d3f5c06ceb0aea20fa0d2ca0a", "nUSDC", "ERC20", "1000000","nUSDC");
@@ -165,8 +165,8 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "UNI", "6c5fa7a3c2cd98a689b1305bd38b56120fe15744", "normalized Uniswap V2", "ERC20", "1000000000000000000","nUNI-V2");
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "UNI", "c534d65c85c074887f58ed1f3bad7dfd739a525e", "pnUNI_V2_ETH_WBTC NEP5", "NEP5", "1000000000000000000","nUNI-V2");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Uniswap", "6c5fa7a3c2cd98a689b1305bd38b56120fe15744", "normalized Uniswap V2", "ERC20", "1000000000000000000","nUNI-V2");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "Uniswap", "c534d65c85c074887f58ed1f3bad7dfd739a525e", "pnUNI_V2_ETH_WBTC NEP5", "NEP5", "1000000000000000000","nUNI-V2");
 
 
 
@@ -219,7 +219,7 @@ CREATE TABLE `fchain_transfer` (
   `asset` VARCHAR(128) NOT NULL COMMENT '资产hash',
   `xfrom` VARCHAR(128) NOT NULL COMMENT '发送用户',
   `xto` VARCHAR(128) NOT NULL COMMENT '接受用户',
-  `amount` BIGINT(8) NOT NULL COMMENT '收到的金额',
+  `amount` VARCHAR(64) NOT NULL COMMENT '收到的金额',
   `tochainid` INT(4) NOT NULL COMMENT '目标链的id',
   `toasset` VARCHAR(1024) NOT NULL COMMENT '目标链的资产hash',
   `touser` VARCHAR(128) NOT NULL COMMENT '目标链的接受用户',
@@ -251,7 +251,7 @@ CREATE TABLE `tchain_transfer` (
   `asset` VARCHAR(128) NOT NULL COMMENT '资产hash',
   `xfrom` VARCHAR(128) NOT NULL COMMENT '发送用户',
   `xto` VARCHAR(128) NOT NULL COMMENT '接受用户',
-  `amount` BIGINT(8) NOT NULL COMMENT '收到的金额',
+  `amount` VARCHAR(64) NOT NULL COMMENT '收到的金额',
   PRIMARY KEY (`txhash`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
