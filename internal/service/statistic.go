@@ -154,7 +154,7 @@ func (srv *Service) updateAssetStatisticsByCoinPrice(assetStatistics []*model.As
 			assetStatistic.Amount_usd = big.NewInt(0)
 			assetStatistic.Amount_btc = big.NewInt(0)
 		} else {
-			amount := new(big.Int).Mul(assetStatistic.Amount, big.NewInt(int64(coinPrice)))
+			amount := new(big.Int).Mul(assetStatistic.Amount, big.NewInt(int64(coinPrice * 10000)))
 			assetStatistic.Amount_usd = amount
 			amount_btc := new(big.Int).Div(assetStatistic.Amount_usd, big.NewInt(int64(bitcoinPrice)))
 			assetStatistic.Amount_btc = amount_btc

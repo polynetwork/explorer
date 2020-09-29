@@ -148,6 +148,14 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "SUSD", "37f4497b6f5f511e73843a0bda1042777666f7ec", "pSUSD", "OEP4", "1000000000000000000","SUSD");
 
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "OKB", "776c8db09367615bc741be6e13dec8eabd2bd8bd", "OKB", "ERC20", "1000000000000000000","OKB");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "OKB", "0191f134a3ef0e1eb4f557b6aa0b8bdfd0a5db21", "pOKB", "OEP4", "1000000000000000000","OKB");
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Uniswap", "1269d9940a2bfc5ac13c759e7ef1e35fec7278f6", "Uniswap", "ERC20", "1000000000000000000","Uniswap");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Uniswap", "b79d2064947f61070cb68ef26cbc12cbf3b98d9e", "Uniswap", "OEP4", "1000000000000000000","Uniswap");
+
+
 
 DROP TABLE IF EXISTS `poly_validators`;
 CREATE TABLE `poly_validators` (

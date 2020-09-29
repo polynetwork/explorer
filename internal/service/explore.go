@@ -624,18 +624,18 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 		txNumTotal += assetStatistic.TxNum
 	}
 
-	assetInfo.AmountBtcTotal = exp.FormatAmount(uint64(1), amountBtcTotal)
-	assetInfo.AmountUsdTotal = exp.FormatAmount(uint64(1), amountUsdTotal)
+	assetInfo.AmountBtcTotal = exp.FormatAmount(uint64(10000), amountBtcTotal)
+	assetInfo.AmountUsdTotal = exp.FormatAmount(uint64(10000), amountUsdTotal)
 
 	for _, assetStatistic := range assetStatistics {
 		assetStatisticResp := &model.AssetStatisticResp{
 			Name: assetStatistic.Name,
 			Addressnum: assetStatistic.Addressnum,
 			AddressnumPrecent: exp.Precent(uint64(assetStatistic.Addressnum), uint64(addressNumberTotal)),
-			Amount: exp.FormatAmount(uint64(1), assetStatistic.Amount),
-			Amount_btc: exp.FormatAmount(uint64(1), assetStatistic.Amount_btc),
+			Amount: exp.FormatAmount(uint64(10000), assetStatistic.Amount),
+			Amount_btc: exp.FormatAmount(uint64(10000), assetStatistic.Amount_btc),
 			AmountBtcPrecent: exp.Precent(assetStatistic.Amount_btc.Uint64(), amountBtcTotal.Uint64()),
-			Amount_usd: exp.FormatAmount(uint64(1), assetStatistic.Amount_usd),
+			Amount_usd: exp.FormatAmount(uint64(10000), assetStatistic.Amount_usd),
 			AmountUsdPrecent: exp.Precent(assetStatistic.Amount_usd.Uint64(), amountUsdTotal.Uint64()),
 			TxNum: assetStatistic.TxNum,
 			TxNumPrecent: exp.Precent(uint64(assetStatistic.TxNum), uint64(txNumTotal)),
