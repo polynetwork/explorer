@@ -632,7 +632,7 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 			Name: assetStatistic.Name,
 			Addressnum: assetStatistic.Addressnum,
 			AddressnumPrecent: exp.Precent(uint64(assetStatistic.Addressnum), uint64(addressNumberTotal)),
-			Amount: exp.FormatAmount(uint64(10000), assetStatistic.Amount),
+			Amount: exp.FormatAmount(uint64(1), assetStatistic.Amount),
 			Amount_btc: exp.FormatAmount(uint64(10000), assetStatistic.Amount_btc),
 			AmountBtcPrecent: exp.Precent(assetStatistic.Amount_btc.Uint64(), amountBtcTotal.Uint64()),
 			Amount_usd: exp.FormatAmount(uint64(10000), assetStatistic.Amount_usd),
