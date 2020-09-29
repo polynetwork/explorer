@@ -612,6 +612,9 @@ func (d *Dao) SelectAssetTxInfo(start uint32, end uint32)  (res []*model.AssetTx
 		amount, _ := new(big.Int).SetString(item.Amount, 10)
 		r.Amount = new(big.Int).Add(r.Amount, amount)
 	}
+	if r.Name != "" && r.TxNum != 0 {
+		res = append(res, r)
+	}
 	return res, nil
 }
 
