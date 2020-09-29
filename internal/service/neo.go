@@ -145,8 +145,7 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 								//amount, _ := strconv.ParseUint(common.HexStringReverse(notifynew.State.Value[6].Value), 16, 64)
 								amount := big.NewInt(0)
 								if notifynew.State.Value[6].Type == "Integer" {
-									data, _ := strconv.ParseUint(notifynew.State.Value[6].Value, 10, 64)
-									amount = amount.SetInt64(int64(data))
+									amount, _ = new(big.Int).SetString(notifynew.State.Value[6].Value, 10)
 								} else {
 									amount, _ = new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[6].Value), 16)
 								}
@@ -209,8 +208,7 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 								//amount, _ := strconv.ParseUint(common.HexStringReverse(notifynew.State.Value[3].Value), 16, 64)
 								amount := big.NewInt(0)
 								if notifynew.State.Value[3].Type == "Integer" {
-									data, _ := strconv.ParseUint(notifynew.State.Value[3].Value, 10, 64)
-									amount = amount.SetInt64(int64(data))
+									amount, _ = new(big.Int).SetString(notifynew.State.Value[3].Value, 10)
 								} else {
 									amount, _ = new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[3].Value), 16)
 								}
