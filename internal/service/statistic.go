@@ -33,14 +33,14 @@ func (srv *Service) DoStatistic() {
 	//
 	needUpdatedHistory := srv.checkHistory(start)
 	if needUpdatedHistory != nil {
-		needUpdatedHistory := srv.updatePrecision(needUpdatedHistory)
+		needUpdatedHistory = srv.updatePrecision(needUpdatedHistory)
 		err := srv.updateAssetStatisticsByCoinPrice(needUpdatedHistory, coinPrice)
 		if err != nil {
 			return
 		}
 		srv.checkAssetStatistics(needUpdatedHistory)
+		srv.dao.UpdateAssetStatistics(needUpdatedHistory, start)
 	}
-	srv.dao.UpdateAssetStatistics(needUpdatedHistory, start)
 	//
 	latestUpdated := srv.latestUpdated(start, end)
 	if latestUpdated == nil {
