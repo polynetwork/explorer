@@ -276,4 +276,13 @@ CREATE TABLE `asset_statistic` (
   PRIMARY KEY (`xname`)
 )ENGINE=INNODB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `transfer_statistic`;
+CREATE TABLE `transfer_statistic` (
+  `asset`        VARCHAR(64) COMMENT '资产hash',
+  `amount`       BIGINT(8)  NOT NULL COMMENT '资产总额',
+  `latestin`     INT(4)  NOT NULL COMMENT '统计数据的时间点',
+  `latestout`    INT(4)  NOT NULL COMMENT '统计数据的时间点',
+  PRIMARY KEY (`asset`)
+)ENGINE=INNODB DEFAULT CHARSET=utf8;
+
 SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));

@@ -23,7 +23,8 @@
     "master": 1,
     "http_cert_path": "",
     "http_key_path": "http_key_path",
-    "statistic_time_slot": 10,
+    "asset_statistic_time_slot": 10,
+    "transfer_statistic_time_slot": 10,
     "loglevel": 1
   },
   "coinmarketcap": {
