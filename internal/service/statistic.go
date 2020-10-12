@@ -2,7 +2,11 @@ package service
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/polynetwork/explorer/internal/coinmarketcap"
+	"github.com/polynetwork/explorer/internal/common"
+	"github.com/polynetwork/explorer/internal/ethtools/usdt_abi"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
 	"math"
@@ -10,7 +14,7 @@ import (
 	"time"
 )
 
-func (srv *Service) DoStatistic() {
+func (srv *Service) DoAssetStatistic() {
 	now := time.Now()
 	nowUnix := uint32(now.Unix())
 	end := (nowUnix / 60)
@@ -18,18 +22,12 @@ func (srv *Service) DoStatistic() {
 	if end % srv.c.Server.StatisticTimeslot != 0 {
 		return
 	}
-	log.Infof("do statistic at time: %s", now.Format("2006-01-02 15:04:05"))
+	log.Infof("do asset statistic at time: %s", now.Format("2006-01-02 15:04:05"))
 	end = end * 60
 	start = start * 60
 	//
-	coins := make([]string, 0)
-	for _, item := range srv.tokens {
-		coins = append(coins, item.Name)
-	}
-	coinPrice := srv.getCoinPrice(coins)
-	if coinPrice == nil {
-		return
-	}
+	srv.updateCoinPrice()
+	coinPrice := srv.coinPrice
 	//
 	needUpdatedHistory := srv.checkHistory(start)
 	if needUpdatedHistory != nil {
@@ -148,13 +146,18 @@ func (srv *Service) updateAssetStatisticsByCoinPrice(assetStatistics []*model.As
 		return fmt.Errorf("There is no coin Bitcoin!")
 	}
 	for _, assetStatistic := range assetStatistics {
+		if assetStatistic.Name == common.UNISWAP_NAME {
+			assetStatistic.Amount_btc = srv.updateUniswap(assetStatistic.Amount)
+			assetStatistic.Amount_usd = new(big.Int).Mul(assetStatistic.Amount_btc, big.NewInt(int64(bitcoinPrice)))
+			continue
+		}
 		coinPrice, ok := coinPrices[assetStatistic.Name]
 		if !ok {
 			log.Warnf("There is no coin %s!", assetStatistic.Name)
 			assetStatistic.Amount_usd = big.NewInt(0)
 			assetStatistic.Amount_btc = big.NewInt(0)
 		} else {
-			amount := new(big.Int).Mul(assetStatistic.Amount, big.NewInt(int64(coinPrice * 10000)))
+			amount := new(big.Int).Mul(assetStatistic.Amount, big.NewInt(int64(coinPrice * 100)))
 			assetStatistic.Amount_usd = amount
 			amount_btc := new(big.Int).Div(assetStatistic.Amount_usd, big.NewInt(int64(bitcoinPrice)))
 			assetStatistic.Amount_btc = amount_btc
@@ -222,7 +225,9 @@ func (srv *Service) updatePrecision(assetStatistics []*model.AssetStatistic) []*
 			log.Errorf("updatePrecision err, the precision of  token: %s is missing", item.Name)
 			continue
 		}
-		item.Amount = item.Amount.Div(item.Amount, big.NewInt(int64(precision)))
+		amount := new(big.Int).SetInt64(100)
+		amount = new(big.Int).Mul(item.Amount, amount)
+		item.Amount = new(big.Int).Div(amount, big.NewInt(int64(precision)))
 		res = append(res, item)
 	}
 	return res
@@ -244,3 +249,96 @@ func (srv *Service) checkAssetStatistics(assetStatistics []*model.AssetStatistic
 		}
 	}
 }
+
+func (srv *Service) updateUniswap(amount *big.Int) *big.Int {
+	uniAddr_hex := "Bb2b8038a1640196FbE3e38816F3e67Cba72D940"
+	uniAddress := ethcommon.HexToAddress(uniAddr_hex)
+	uniContract, err := usdt_abi.NewTetherToken(uniAddress, srv.ethClient.Client)
+	if err != nil {
+		log.Errorf("updateUniswap, error: %s", err.Error())
+		return big.NewInt(0)
+	}
+	totolSupply, err := uniContract.TotalSupply(&bind.CallOpts{})
+	if err != nil {
+		log.Errorf("updateUniswap, error: %s", err.Error())
+		return big.NewInt(0)
+	}
+
+	wbtcAddr_hex := "2260fac5e5542a773aa44fbcfedf7c193bc2c599"
+	wbtcAddress := ethcommon.HexToAddress(wbtcAddr_hex)
+	wbtcContract, err := usdt_abi.NewTetherToken(wbtcAddress, srv.ethClient.Client)
+	if err != nil {
+		fmt.Printf("updateUniswap, error: %s", err.Error())
+		return big.NewInt(0)
+	}
+	balance, err := wbtcContract.BalanceOf(&bind.CallOpts{}, uniAddress)
+	if err != nil {
+		fmt.Printf("updateUniswap, error: %s", err.Error())
+		return big.NewInt(0)
+	}
+	aa := new(big.Int).Mul(amount, balance)
+	bb := new(big.Int).Mul(aa, big.NewInt(2000000000000))
+	cc := new(big.Int).Div(bb, totolSupply)
+	return cc
+}
+
+
+func (srv *Service) DoTransferStatistic() {
+	now := time.Now()
+	nowUnix := uint32(now.Unix())
+	end := (nowUnix / 60)
+	start := end - srv.c.Server.StatisticTimeslot
+	if end % srv.c.Server.StatisticTimeslot != 0 {
+		return
+	}
+	log.Infof("do transfer statistic at time: %s", now.Format("2006-01-02 15:04:05"))
+	end = end * 60
+	start = start * 60
+	transferStatistic := srv.checkTransferStatistic()
+	if transferStatistic == nil {
+		return
+	}
+	for _, tokenStatistic := range transferStatistic {
+		srv.makeTransferStatistic(tokenStatistic)
+	}
+}
+
+func (srv *Service) checkTransferStatistic() (res []*model.TransferStatistic) {
+	transferStatistics, err := srv.dao.SelectTransferStatistic()
+	if err != nil {
+		log.Errorf("checkTransferStatistic err: %s", err.Error())
+		return nil
+	}
+	if transferStatistics == nil || len(transferStatistics) == 0 {
+		return nil
+	}
+	return transferStatistics
+}
+
+func (srv *Service) makeTransferStatistic(tokenStatistic *model.TransferStatistic) {
+	txOutInfo, err := srv.dao.SelectTransferOutHistory(tokenStatistic.LatestOut, tokenStatistic.Hash)
+	if err != nil {
+		log.Errorf("SelectTransferOutHistory err: %s", err.Error())
+		return
+	}
+	txInInfo, err := srv.dao.SelectTransferInHistory(tokenStatistic.LatestIn, tokenStatistic.Hash)
+	if err != nil {
+		log.Errorf("SelectTransferInHistory err: %s", err.Error())
+		return
+	}
+	tokenStatistic.LatestOut = txOutInfo.TT
+	tokenStatistic.LatestIn = txInInfo.TT
+	tokenStatistic.Amount = new(big.Int).Add(tokenStatistic.Amount, txInInfo.Amount)
+	tokenStatistic.Amount = new(big.Int).Sub(tokenStatistic.Amount, txOutInfo.Amount)
+
+	token := srv.GetToken(tokenStatistic.Hash)
+	if token == nil {
+		log.Errorf("makeTransferStatistic err, the token: %s is missing", tokenStatistic.Hash)
+		return
+	}
+	tokenStatistic.Amount = new(big.Int).Div(tokenStatistic.Amount, big.NewInt(int64(token.Precision)))
+	tokenStatistic.Amount = new(big.Int).Mul(tokenStatistic.Amount, big.NewInt(100))
+
+	srv.dao.UpdateTransferStatistic(tokenStatistic)
+}
+

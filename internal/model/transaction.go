@@ -162,3 +162,24 @@ type AssetTxInfo struct {
 	Amount    *big.Int    `json:"amount"`
 	TxNum     uint32    `json:"txnumber"`
 }
+
+type TransferStatistic struct {
+	Hash         string    `json:"asset"`
+	Amount       *big.Int    	`json:"amount"`
+	LatestIn     uint32    `json:"latestin"`
+	LatestOut    uint32    `json:"latestout"`
+}
+
+type TransferTxInfo struct {
+	Hash   string    `json:"asset"`
+	Amount   *big.Int    `json:"amount"`
+	TT   uint32
+}
+
+type AllTransferStatistic struct {
+	Hash       string    `json:"asset"`
+	Token       string      `json:"token"`
+	Amount     *big.Int    `json:"amount"`
+	Chain      uint32      `json:"chainid"`
+	Name       string      `json:"name"`
+}

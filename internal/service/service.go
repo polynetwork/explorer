@@ -50,6 +50,7 @@ type Service struct {
 	cosmosClient   *client.CosmosClient
 	chain          []*model.ChainInfo
 	tokens         []*model.CrossChainToken
+	coinPrice      map[string]float64
 }
 
 func New(c *conf.Config) (s *Service) {
@@ -64,6 +65,7 @@ func New(c *conf.Config) (s *Service) {
 		cosmosClient:   client.NewCosmosClient(c),
 		chain: make([]*model.ChainInfo, 0),
 		tokens: make([]*model.CrossChainToken, 0),
+		coinPrice: make(map[string]float64, 0),
 	}
 	return s
 }
@@ -128,9 +130,23 @@ func (exp *Service) GetChainInfos() ([]*model.ChainInfo,[]*model.CrossChainToken
 	return chainInfos, crosschainTokens, nil
 }
 
+func (exp *Service) updateCoinPrice() {
+	//
+	coins := make([]string, 0)
+	for _, item := range exp.tokens {
+		coins = append(coins, item.Name)
+	}
+	coinPrice := exp.getCoinPrice(coins)
+	if coinPrice == nil {
+		return
+	}
+	exp.coinPrice = coinPrice
+}
+
 func (exp *Service) Start(context *ctx.Context) {
 	exp.CheckChains(context)
 	exp.Statistic()
+	exp.updateCoinPrice()
 
 	t := time.NewTicker(60 * time.Second)
 	for {
@@ -174,6 +190,23 @@ func (exp *Service) CheckChains(context *ctx.Context) {
 			log.Errorf("InsertAssetStatistic err: %s", err.Error())
 		}
 	}
+	allOldTokens := make(map[string]bool, 0)
+	for _, tokenOld := range tokensOld {
+		for _, token := range tokenOld.Tokens {
+			allOldTokens[token.Hash] = true
+		}
+	}
+	for _, tokenNew := range crossChainTokenNew {
+		for _, token := range tokenNew.Tokens {
+			_, ok := allOldTokens[token.Hash]
+			if !ok {
+				err := exp.dao.InsertTransferStatistic(token.Hash)
+				if err != nil {
+					log.Errorf("InsertTransferStatistic err: %s", err.Error())
+				}
+			}
+		}
+	}
 	for _, chainNew := range chainInfoNew {
 		exist := false
 		for _, chainOld := range chainInfoOld {
@@ -205,7 +238,8 @@ func (exp *Service) Statistic() {
 	if exp.c.Server.Master == 0 {
 		return
 	}
-	exp.DoStatistic()
+	exp.DoAssetStatistic()
+	exp.DoTransferStatistic()
 }
 
 func (exp *Service) CheckLog() {

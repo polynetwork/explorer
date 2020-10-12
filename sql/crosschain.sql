@@ -161,7 +161,8 @@ CREATE TABLE `tchain_transfer` (
   `xfrom` VARCHAR(128) NOT NULL COMMENT '发送用户',
   `xto` VARCHAR(128) NOT NULL COMMENT '接受用户',
   `amount` VARCHAR(32) NOT NULL COMMENT '收到的金额',
-  PRIMARY KEY (`txhash`)
+  PRIMARY KEY (`txhash`),
+  INDEX (`asset`, `tt`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `asset_statistic`;
@@ -174,6 +175,14 @@ CREATE TABLE `asset_statistic` (
   `txnum`       INT(4) NOT NULL COMMENT '总的交易个数',
   `latestupdate` INT(4)  NOT NULL COMMENT '统计数据的时间点',
   PRIMARY KEY (`xname`)
+)ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `transfer_statistic`;
+CREATE TABLE `transfer_statistic` (
+  `asset`        VARCHAR(64) COMMENT '资产hash',
+  `amount`       BIGINT(8)  NOT NULL COMMENT '资产总额',
+  `latestin`     INT(4)  NOT NULL COMMENT '统计数据的时间点',
+  `latestout`    INT(4)  NOT NULL COMMENT '统计数据的时间点'
 )ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));

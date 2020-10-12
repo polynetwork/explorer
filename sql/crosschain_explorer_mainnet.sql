@@ -174,6 +174,11 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 
 
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Uniswap", "1f9840a85d5af5bf1d1762f925bdaddc4201f984", "Uniswap", "ERC20", "1000000000000000000","Uniswap");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Uniswap", "89029ef258b82c5c3741fe25db91375e9301dc71", "pUNI,", "OEP4", "1000000000000000000","Uniswap");
+
+
+
 DROP TABLE IF EXISTS `poly_validators`;
 CREATE TABLE `poly_validators` (
   `height` INT(12) NOT NULL COMMENT '交易的高度',

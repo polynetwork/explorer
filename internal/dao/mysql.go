@@ -66,7 +66,13 @@ const (
 	_updateStatistic                =  "update asset_statistic set addressnum = ?, amount = amount + ?, amount_btc = amount_btc + ?, amount_usd = amount_usd + ?, txnum = txnum + ?, latestupdate = ? where xname = ? and latestupdate = ?"
 	_selectAssetStatistic           =  "select xname, addressnum, amount, amount_btc, amount_usd, txnum, latestupdate from asset_statistic where latestupdate < ? order by amount_usd desc"
 	_selectAssetHistory             =  "select A.amount from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? and B.xtoken = ?"
-)
+	_insertTransferStatistic        =  "insert into transfer_statistic(asset, amount, latestin, latestout) values(?, 0, 0, 0) ON DUPLICATE KEY UPDATE amount=amount"
+	_selectTransferStatistic        =  "select asset, amount, latestin, latestout from transfer_statistic"
+	_selectTransferOutHistory       =  "select amount, tt from fchain_transfer where asset = ? and tt > ?"
+	_selectTransferInHistory        =  "select amount, tt from tchain_transfer where asset = ? and tt > ?"
+	_updateTransferStatistic        =  "update transfer_statistic set amount = ?, latestin = ?, latestout = ? where asset = ?"
+	_selectAllTransferStatistic     =  "select A.asset, A.amount, B.xtoken, B.id, B.xname from transfer_statistic A left join chain_token B on A.asset = B.hash"
+	)
 
 func (d *Dao) InsertTChainTx(t *model.TChainTx) (err error) {
 	if _, err = d.db.Exec(_insertTChainTx, t.Chain, t.TxHash, t.State, t.TT, t.Fee, t.Height, t.FChain, t.Contract, t.RTxHash); err != nil {
@@ -699,4 +705,144 @@ func (d *Dao) SelectAssetHistory(start uint32, end uint32, name string)  (res *m
 		res.TxNum ++
 	}
 	return
+}
+
+
+func (d *Dao) InsertTransferStatistic(hash string) (err error) {
+	if _, err = d.db.Exec(_insertTransferStatistic, hash); err != nil {
+		return
+	}
+	return
+}
+
+func (d *Dao) SelectTransferStatistic() (res []*model.TransferStatistic, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectTransferStatistic); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.TransferStatistic)
+		Amount := int64(0)
+		if err = rows.Scan(&r.Hash, &Amount, &r.LatestIn, &r.LatestOut); err != nil {
+			res = nil
+			return
+		}
+		r.Amount = new(big.Int).SetInt64(Amount)
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+
+type TransferTxInfo1 struct {
+	Amount  string
+	TT   uint32
+}
+
+func (d *Dao) SelectTransferOutHistory1(start uint32, hash string) (res []*TransferTxInfo1, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectTransferOutHistory, hash, start); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(TransferTxInfo1)
+		if err = rows.Scan(&r.Amount, &r.TT); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectTransferOutHistory(start uint32, hash string)  (res *model.TransferTxInfo, err error) {
+	res = new(model.TransferTxInfo)
+	res.Hash = hash
+	res.Amount = big.NewInt(0)
+	oriRes, err := d.SelectTransferOutHistory1(start, hash)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	tt := uint32(0)
+	for _, item := range oriRes {
+		amount, _ := new(big.Int).SetString(item.Amount, 10)
+		res.Amount = new(big.Int).Add(res.Amount, amount)
+		if item.TT > tt {
+			tt = item.TT
+		}
+	}
+	res.TT = tt
+	return
+}
+
+func (d *Dao) SelectTransferInHistory1(start uint32, hash string) (res []*TransferTxInfo1, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectTransferInHistory, hash, start); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(TransferTxInfo1)
+		if err = rows.Scan(&r.Amount, &r.TT); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectTransferInHistory(start uint32, hash string)  (res *model.TransferTxInfo, err error) {
+	res = new(model.TransferTxInfo)
+	res.Hash = hash
+	res.Amount = big.NewInt(0)
+	oriRes, err := d.SelectTransferInHistory1(start, hash)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	tt := uint32(0)
+	for _, item := range oriRes {
+		amount, _ := new(big.Int).SetString(item.Amount, 10)
+		res.Amount = new(big.Int).Add(res.Amount, amount)
+		if item.TT > tt {
+			tt = item.TT
+		}
+	}
+	res.TT = tt
+	return
+}
+
+func (d *Dao) UpdateTransferStatistic(transferStatistic *model.TransferStatistic) (err error) {
+	if _, err = d.db.Exec(_updateTransferStatistic, transferStatistic.Amount.Int64(), transferStatistic.LatestIn, transferStatistic.LatestOut, transferStatistic.LatestIn); err != nil {
+		return err
+	}
+	return nil
+}
+
+
+func (d *Dao) SelectAllTransferStatistic() (res []*model.AllTransferStatistic, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAllTransferStatistic); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.AllTransferStatistic)
+		Amount := int64(0)
+		if err = rows.Scan(&r.Hash, &Amount, &r.Token, &r.Chain, &r.Name); err != nil {
+			res = nil
+			return
+		}
+		r.Amount = new(big.Int).SetInt64(Amount)
+		res = append(res, r)
+	}
+	return res, nil
 }

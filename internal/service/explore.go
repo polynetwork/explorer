@@ -632,7 +632,7 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 			Name: assetStatistic.Name,
 			Addressnum: assetStatistic.Addressnum,
 			AddressnumPrecent: exp.Precent(uint64(assetStatistic.Addressnum), uint64(addressNumberTotal)),
-			Amount: exp.FormatAmount(uint64(1), assetStatistic.Amount),
+			Amount: exp.FormatAmount(uint64(100), assetStatistic.Amount),
 			Amount_btc: exp.FormatAmount(uint64(10000), assetStatistic.Amount_btc),
 			AmountBtcPrecent: exp.Precent(assetStatistic.Amount_btc.Uint64(), amountBtcTotal.Uint64()),
 			Amount_usd: exp.FormatAmount(uint64(10000), assetStatistic.Amount_usd),
@@ -644,6 +644,97 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 		assetInfo.AssetStatistics = append(assetInfo.AssetStatistics, assetStatisticResp)
 	}
 	return assetInfo
+}
+
+func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTransferStatistic) *model.AllTransferStatisticResp {
+	allTransferStatistic := new(model.AllTransferStatisticResp)
+	allTransferStatistic.ChainTransferStatistics = make([]*model.ChainTransferStatisticResp, 0)
+	for _, transferStatistic := range transferStatistics {
+		var chainStatistic *model.ChainTransferStatisticResp
+		chainStatistic = nil
+		for _, item1 := range allTransferStatistic.ChainTransferStatistics {
+			if item1.Chain == transferStatistic.Chain {
+				chainStatistic = item1
+				break
+			}
+		}
+		if chainStatistic == nil {
+			chainStatistic = new(model.ChainTransferStatisticResp)
+			chainStatistic.Chain = transferStatistic.Chain
+			chainStatistic.ChainName = exp.ChainId2Name(transferStatistic.Chain)
+			chainStatistic.AssetTransferStatistics = make([]*model.AssetTransferStatisticResp, 0)
+			allTransferStatistic.ChainTransferStatistics = append(allTransferStatistic.ChainTransferStatistics, chainStatistic)
+		}
+		var assetStatistic *model.AssetTransferStatisticResp
+		assetStatistic = nil
+		for _, item2 := range chainStatistic.AssetTransferStatistics {
+			if item2.Name == transferStatistic.Token {
+				assetStatistic = item2
+				break
+			}
+		}
+		if assetStatistic == nil {
+			assetStatistic = new(model.AssetTransferStatisticResp)
+			assetStatistic.Amount1 = big.NewInt(0)
+			assetStatistic.Name = transferStatistic.Token
+			assetStatistic.TokenTransferStatistics = make([]*model.TokenTransferStatisticResp, 0)
+			chainStatistic.AssetTransferStatistics = append(chainStatistic.AssetTransferStatistics, assetStatistic)
+		}
+		var tokenStatistic *model.TokenTransferStatisticResp
+		tokenStatistic = nil
+		for _, item3 := range assetStatistic.TokenTransferStatistics {
+			if item3.Name == transferStatistic.Name {
+				tokenStatistic = item3
+				break
+			}
+		}
+		if tokenStatistic == nil {
+			tokenStatistic = new(model.TokenTransferStatisticResp)
+			tokenStatistic.Name = transferStatistic.Name
+			tokenStatistic.Hash = transferStatistic.Hash
+			tokenStatistic.Amount = exp.FormatAmount(uint64(100), transferStatistic.Amount)
+			assetStatistic.TokenTransferStatistics = append(assetStatistic.TokenTransferStatistics, tokenStatistic)
+		}
+		assetStatistic.Amount1 = new(big.Int).Add(assetStatistic.Amount1, transferStatistic.Amount)
+	}
+	coinPrices := exp.coinPrice
+	bitcoinPrice, ok := coinPrices["Bitcoin"]
+	if !ok {
+		log.Errorf("There is no coin Bitcoin!")
+		return allTransferStatistic
+	}
+	for _, item1 := range allTransferStatistic.ChainTransferStatistics {
+		amount_btc_total := big.NewInt(0)
+		amount_usd_total := big.NewInt(0)
+		for _, item2 := range item1.AssetTransferStatistics {
+			item2.Amount = exp.FormatAmount(uint64(100), item2.Amount1)
+			amount_btc := big.NewInt(0)
+			amount_usd := big.NewInt(0)
+			if item2.Name == common.UNISWAP_NAME {
+				amount_btc = exp.updateUniswap(item2.Amount1)
+				item2.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc)
+				amount_usd = new(big.Int).Mul(amount_btc, big.NewInt(int64(bitcoinPrice)))
+				item2.Amount_usd  = exp.FormatAmount(uint64(10000), amount_usd)
+			} else {
+				coinPrice, ok := coinPrices[item2.Name]
+				if !ok {
+					log.Warnf("There is no coin %s!", item2.Name)
+					item2.Amount_usd = exp.FormatAmount(uint64(10000), big.NewInt(0))
+					item2.Amount_btc = exp.FormatAmount(uint64(10000), big.NewInt(0))
+				} else {
+					amount_usd = new(big.Int).Mul(item2.Amount1, big.NewInt(int64(coinPrice*100)))
+					item2.Amount_usd = exp.FormatAmount(uint64(10000), amount_usd)
+					amount_btc = new(big.Int).Div(amount_usd, big.NewInt(int64(bitcoinPrice)))
+					item2.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc)
+				}
+			}
+			amount_btc_total = new(big.Int).Add(amount_btc_total, amount_btc)
+			amount_usd_total = new(big.Int).Add(amount_usd_total, amount_usd)
+		}
+		item1.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc_total)
+		item1.Amount_usd = exp.FormatAmount(uint64(10000), amount_usd_total)
+	}
+	return allTransferStatistic
 }
 
 // GetCrossTx gets cross tx by Tx
@@ -665,7 +756,18 @@ func (exp *Service) GetAssetStatistic() (int64, string) {
 		return myerror.DB_CONNECTTION_FAILED, ""
 	}
 	assetInfo := exp.outputAssetInfo(assetStatistics)
-	validators_json, _ := json.Marshal(assetInfo)
-	return myerror.SUCCESS, string(validators_json)
+	assetInfo_json, _ := json.Marshal(assetInfo)
+	return myerror.SUCCESS, string(assetInfo_json)
+}
+
+func (exp *Service) GetTransferStatistic() (int64, string) {
+	log.Infof("GetTransferStatistic")
+	transferStatistics, err := exp.dao.SelectAllTransferStatistic()
+	if err != nil {
+		return myerror.DB_CONNECTTION_FAILED, ""
+	}
+	transferInfo := exp.outputTransferStatistic(transferStatistics)
+	transferInfo_json, _ := json.Marshal(transferInfo)
+	return myerror.SUCCESS, string(transferInfo_json)
 }
 

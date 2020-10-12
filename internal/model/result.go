@@ -27,6 +27,8 @@
 
 package model
 
+import "math/big"
+
 type ExplorerInfoReq struct {
 	Start        string    `json:"start"`
 	End          string    `json:"end"`
@@ -361,5 +363,32 @@ type AssetInfoResp struct {
 	AmountBtcTotal  string   `json:"amount_btc_total"`
 	AmountUsdTotal  string   `json:"amount_usd_total"`
 	AssetStatistics  []*AssetStatisticResp  `json:"asset_statistics"`
+}
+
+type TokenTransferStatisticResp struct {
+	Name         string    `json:"name"`
+	Hash         string    `json:"hash"`
+	Amount       string    `json:"amount"`
+}
+
+type AssetTransferStatisticResp struct {
+	Name         string    `json:"name"`
+	Amount1      *big.Int
+	Amount       string    `json:"amount"`
+	Amount_btc   string    `json:"amount_btc"`
+	Amount_usd   string    `json:"amount_usd"`
+	TokenTransferStatistics []*TokenTransferStatisticResp   `json:"token_transfer_statistics"`
+}
+
+type ChainTransferStatisticResp struct {
+	Chain        uint32    `json:"chainid"`
+	ChainName    string    `json:"chainname"`
+	Amount_btc   string    `json:"amount_btc"`
+	Amount_usd   string    `json:"amount_usd"`
+	AssetTransferStatistics []*AssetTransferStatisticResp   `json:"asset_transfer_statistics"`
+}
+
+type AllTransferStatisticResp struct {
+	ChainTransferStatistics []*ChainTransferStatisticResp   `json:"chain_transfer_statistics"`
 }
 
