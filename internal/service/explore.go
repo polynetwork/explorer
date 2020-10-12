@@ -738,15 +738,15 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 		item1.Amount_usd = exp.FormatAmount(uint64(10000), amount_usd_total)
 	}
 	sort.Slice(allTransferStatistic.ChainTransferStatistics, func(i, j int) bool {
-		return allTransferStatistic.ChainTransferStatistics[i].Amount1.Cmp(allTransferStatistic.ChainTransferStatistics[j].Amount1) == -1
+		return allTransferStatistic.ChainTransferStatistics[i].Amount1.Cmp(allTransferStatistic.ChainTransferStatistics[j].Amount1) == 1
 	})
 	for _, item1 := range allTransferStatistic.ChainTransferStatistics {
 		sort.Slice(item1.AssetTransferStatistics, func(i, j int) bool {
-			return item1.AssetTransferStatistics[i].Amount1.Cmp(item1.AssetTransferStatistics[j].Amount1) == -1
+			return item1.AssetTransferStatistics[i].Amount1.Cmp(item1.AssetTransferStatistics[j].Amount1) == 1
 		})
 		for _, item2 := range item1.AssetTransferStatistics {
 			sort.Slice(item2.TokenTransferStatistics, func(i, j int) bool {
-				return item2.TokenTransferStatistics[i].Amount1.Cmp(item2.TokenTransferStatistics[j].Amount1) == -1
+				return item2.TokenTransferStatistics[i].Amount1.Cmp(item2.TokenTransferStatistics[j].Amount1) == 1
 			})
 		}
 	}
