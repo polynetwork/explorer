@@ -708,6 +708,7 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 	for _, item1 := range allTransferStatistic.ChainTransferStatistics {
 		amount_btc_total := big.NewInt(0)
 		amount_usd_total := big.NewInt(0)
+		other_amount_usd_total := big.NewInt(0)
 		for _, item2 := range item1.AssetTransferStatistics {
 			item2.Amount = exp.FormatAmount(uint64(100), item2.Amount1)
 			amount_btc := big.NewInt(0)
@@ -717,21 +718,32 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 				item2.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc)
 				amount_usd = new(big.Int).Mul(amount_btc, big.NewInt(int64(bitcoinPrice)))
 				item2.Amount_usd  = exp.FormatAmount(uint64(10000), amount_usd)
+				item2.Amount_usd1 = amount_usd
 			} else {
 				coinPrice, ok := coinPrices[item2.Name]
 				if !ok {
 					log.Warnf("There is no coin %s!", item2.Name)
 					item2.Amount_usd = exp.FormatAmount(uint64(10000), big.NewInt(0))
 					item2.Amount_btc = exp.FormatAmount(uint64(10000), big.NewInt(0))
+					item2.Amount_usd1 = big.NewInt(0)
 				} else {
 					amount_usd = new(big.Int).Mul(item2.Amount1, big.NewInt(int64(coinPrice*100)))
 					item2.Amount_usd = exp.FormatAmount(uint64(10000), amount_usd)
 					amount_btc = new(big.Int).Div(amount_usd, big.NewInt(int64(bitcoinPrice)))
 					item2.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc)
+					item2.Amount_usd1 = amount_usd
 				}
 			}
 			amount_btc_total = new(big.Int).Add(amount_btc_total, amount_btc)
 			amount_usd_total = new(big.Int).Add(amount_usd_total, amount_usd)
+			if amount_usd.Cmp(big.NewInt(0)) == 1 {
+				other_amount_usd_total = new(big.Int).Add(other_amount_usd_total, amount_usd)
+			}
+		}
+		for _, item2 := range item1.AssetTransferStatistics {
+			if item2.Amount_usd1.Cmp(big.NewInt(0)) == 1 {
+				item2.AmountUsdPrecent = exp.Precent(item2.Amount_usd1.Uint64(), other_amount_usd_total.Uint64())
+			}
 		}
 		item1.Amount1 = amount_usd_total
 		item1.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc_total)

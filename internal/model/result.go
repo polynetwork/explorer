@@ -378,6 +378,8 @@ type AssetTransferStatisticResp struct {
 	Amount       string    `json:"amount"`
 	Amount_btc   string    `json:"amount_btc"`
 	Amount_usd   string    `json:"amount_usd"`
+	AmountUsdPrecent string   `json:"Amount_usd_precent"`
+	Amount_usd1  *big.Int
 	TokenTransferStatistics []*TokenTransferStatisticResp   `json:"token_transfer_statistics"`
 }
 
