@@ -336,9 +336,7 @@ func (srv *Service) makeTransferStatistic(tokenStatistic *model.TransferStatisti
 		log.Errorf("makeTransferStatistic err, the token: %s is missing", tokenStatistic.Hash)
 		return
 	}
-	tokenStatistic.Amount = new(big.Int).Div(tokenStatistic.Amount, big.NewInt(int64(token.Precision)))
-	tokenStatistic.Amount = new(big.Int).Mul(tokenStatistic.Amount, big.NewInt(100))
-
+	tokenStatistic.Amount = new(big.Int).Div(tokenStatistic.Amount, big.NewInt(int64(token.Precision/100)))
 	err = srv.dao.UpdateTransferStatistic(tokenStatistic)
 	if err != nil {
 		log.Errorf("UpdateTransferStatistic err:%v", err)

@@ -277,6 +277,16 @@ func GetAssetStatistic(cmd map[string]interface{}) map[string]interface{} {
 	return resp
 }
 
+func GetTransferStatistic(cmd map[string]interface{}) map[string]interface{} {
+	code, result := srv.GetTransferStatistic()
+	if code != error.SUCCESS {
+		return ResponsePack(code)
+	}
+	resp := ResponsePack(error.SUCCESS)
+	resp["result"] = result
+	return resp
+}
+
 func StartMonitorService(context *ctx.Context) {
 	go srv.Start(context)
 }

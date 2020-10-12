@@ -58,6 +58,7 @@ const (
 	GET_ADDRESSTX_LIST = "/api/v1/getaddresstxlist"
 	GET_LATEST_VALIDATOR = "/api/v1/getlatestvalidator"
 	GET_ASSET_STATISTIC  = "/api/v1/getassetstatistic"
+	GET_TRANSFER_STATISTIC  = "/api/v1/gettransferstatistic"
 )
 
 //init restful server
@@ -117,6 +118,7 @@ func (this *RestServer) registryMethod() {
 		GET_CROSSTX:       {name: "getcrosstx", handler: GetCrossTx},
 		GET_LATEST_VALIDATOR:       {name: "getlatestvalidator", handler: GetLatestValidator},
 		GET_ASSET_STATISTIC:       {name: "getassetstatistic", handler: GetAssetStatistic},
+		GET_TRANSFER_STATISTIC:       {name: "gettransferstatistic", handler: GetTransferStatistic},
 	}
 	postMethodMap := map[string]Action{
 		GET_CROSSTX_LIST: {name: "getcrosstxlist", handler: GetCrossTxList},
