@@ -339,6 +339,10 @@ func (srv *Service) makeTransferStatistic(tokenStatistic *model.TransferStatisti
 	tokenStatistic.Amount = new(big.Int).Div(tokenStatistic.Amount, big.NewInt(int64(token.Precision)))
 	tokenStatistic.Amount = new(big.Int).Mul(tokenStatistic.Amount, big.NewInt(100))
 
-	srv.dao.UpdateTransferStatistic(tokenStatistic)
+	err = srv.dao.UpdateTransferStatistic(tokenStatistic)
+	if err != nil {
+		log.Errorf("UpdateTransferStatistic err:%v", err)
+		return
+	}
 }
 

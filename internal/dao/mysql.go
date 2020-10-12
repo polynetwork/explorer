@@ -821,7 +821,7 @@ func (d *Dao) SelectTransferInHistory(start uint32, hash string)  (res *model.Tr
 }
 
 func (d *Dao) UpdateTransferStatistic(transferStatistic *model.TransferStatistic) (err error) {
-	if _, err = d.db.Exec(_updateTransferStatistic, transferStatistic.Amount.Int64(), transferStatistic.LatestIn, transferStatistic.LatestOut, transferStatistic.LatestIn); err != nil {
+	if _, err = d.db.Exec(_updateTransferStatistic, transferStatistic.Amount.Int64(), transferStatistic.LatestIn, transferStatistic.LatestOut, transferStatistic.Hash); err != nil {
 		return err
 	}
 	return nil
