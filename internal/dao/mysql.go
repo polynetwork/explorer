@@ -761,14 +761,15 @@ func (d *Dao) SelectTransferOutHistory(start uint32, hash string)  (res *model.T
 	res = new(model.TransferTxInfo)
 	res.Hash = hash
 	res.Amount = big.NewInt(0)
+	res.TT = start
 	oriRes, err := d.SelectTransferOutHistory1(start, hash)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return res, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	tt := uint32(0)
+	tt := start
 	for _, item := range oriRes {
 		amount, _ := new(big.Int).SetString(item.Amount, 10)
 		res.Amount = new(big.Int).Add(res.Amount, amount)
@@ -801,14 +802,15 @@ func (d *Dao) SelectTransferInHistory(start uint32, hash string)  (res *model.Tr
 	res = new(model.TransferTxInfo)
 	res.Hash = hash
 	res.Amount = big.NewInt(0)
+	res.TT = start
 	oriRes, err := d.SelectTransferInHistory1(start, hash)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return res, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	tt := uint32(0)
+	tt := start
 	for _, item := range oriRes {
 		amount, _ := new(big.Int).SetString(item.Amount, 10)
 		res.Amount = new(big.Int).Add(res.Amount, amount)

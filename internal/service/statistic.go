@@ -328,18 +328,21 @@ func (srv *Service) makeTransferStatistic(tokenStatistic *model.TransferStatisti
 	}
 	tokenStatistic.LatestOut = txOutInfo.TT
 	tokenStatistic.LatestIn = txInInfo.TT
-	tokenStatistic.Amount = new(big.Int).Add(tokenStatistic.Amount, txInInfo.Amount)
-	tokenStatistic.Amount = new(big.Int).Sub(tokenStatistic.Amount, txOutInfo.Amount)
-
 	token := srv.GetToken(tokenStatistic.Hash)
 	if token == nil {
 		log.Errorf("makeTransferStatistic err, the token: %s is missing", tokenStatistic.Hash)
 		return
 	}
 	if token.Precision >= 100 {
-		tokenStatistic.Amount = new(big.Int).Div(tokenStatistic.Amount, big.NewInt(int64(token.Precision/100)))
+		inAmount := new(big.Int).Div(txInInfo.Amount, big.NewInt(int64(token.Precision / 100)))
+		tokenStatistic.Amount = new(big.Int).Add(tokenStatistic.Amount, inAmount)
+		outAmount := new(big.Int).Div(txOutInfo.Amount, big.NewInt(int64(token.Precision / 100)))
+		tokenStatistic.Amount = new(big.Int).Sub(tokenStatistic.Amount, outAmount)
 	} else {
-		tokenStatistic.Amount = new(big.Int).Mul(tokenStatistic.Amount, big.NewInt(int64(100 / token.Precision)))
+		inAmount := new(big.Int).Mul(txInInfo.Amount, big.NewInt(int64(100 / token.Precision)))
+		tokenStatistic.Amount = new(big.Int).Add(tokenStatistic.Amount, inAmount)
+		outAmount := new(big.Int).Mul(txOutInfo.Amount, big.NewInt(int64(100 / token.Precision)))
+		tokenStatistic.Amount = new(big.Int).Sub(tokenStatistic.Amount, outAmount)
 	}
 	err = srv.dao.UpdateTransferStatistic(tokenStatistic)
 	if err != nil {
