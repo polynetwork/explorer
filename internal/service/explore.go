@@ -25,6 +25,7 @@ import (
 	"github.com/polynetwork/explorer/internal/model"
 	myerror "github.com/polynetwork/explorer/internal/server/restful/error"
 	"math/big"
+	"sort"
 	"strings"
 )
 
@@ -692,6 +693,7 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 			tokenStatistic = new(model.TokenTransferStatisticResp)
 			tokenStatistic.Name = transferStatistic.Name
 			tokenStatistic.Hash = transferStatistic.Hash
+			tokenStatistic.Amount1 = transferStatistic.Amount
 			tokenStatistic.Amount = exp.FormatAmount(uint64(100), transferStatistic.Amount)
 			assetStatistic.TokenTransferStatistics = append(assetStatistic.TokenTransferStatistics, tokenStatistic)
 		}
@@ -731,8 +733,22 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 			amount_btc_total = new(big.Int).Add(amount_btc_total, amount_btc)
 			amount_usd_total = new(big.Int).Add(amount_usd_total, amount_usd)
 		}
+		item1.Amount1 = amount_usd_total
 		item1.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc_total)
 		item1.Amount_usd = exp.FormatAmount(uint64(10000), amount_usd_total)
+	}
+	sort.Slice(allTransferStatistic.ChainTransferStatistics, func(i, j int) bool {
+		return allTransferStatistic.ChainTransferStatistics[i].Amount1.Cmp(allTransferStatistic.ChainTransferStatistics[j].Amount1) == -1
+	})
+	for _, item1 := range allTransferStatistic.ChainTransferStatistics {
+		sort.Slice(item1.AssetTransferStatistics, func(i, j int) bool {
+			return item1.AssetTransferStatistics[i].Amount1.Cmp(item1.AssetTransferStatistics[j].Amount1) == -1
+		})
+		for _, item2 := range item1.AssetTransferStatistics {
+			sort.Slice(item2.TokenTransferStatistics, func(i, j int) bool {
+				return item2.TokenTransferStatistics[i].Amount1.Cmp(item2.TokenTransferStatistics[j].Amount1) == -1
+			})
+		}
 	}
 	return allTransferStatistic
 }

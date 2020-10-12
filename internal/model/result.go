@@ -368,6 +368,7 @@ type AssetInfoResp struct {
 type TokenTransferStatisticResp struct {
 	Name         string    `json:"name"`
 	Hash         string    `json:"hash"`
+	Amount1      *big.Int
 	Amount       string    `json:"amount"`
 }
 
@@ -385,6 +386,7 @@ type ChainTransferStatisticResp struct {
 	ChainName    string    `json:"chainname"`
 	Amount_btc   string    `json:"amount_btc"`
 	Amount_usd   string    `json:"amount_usd"`
+	Amount1      *big.Int
 	AssetTransferStatistics []*AssetTransferStatisticResp   `json:"asset_transfer_statistics"`
 }
 
