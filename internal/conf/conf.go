@@ -67,7 +67,8 @@ type Server struct {
 	HttpMaxConnections int    `json:"http_max_connections"`
 	HttpCertPath       string `json:"http_cert_path"`
 	HttpKeyPath        string `json:"http_key_path"`
-	StatisticTimeslot  uint32 `json:"statistic_time_slot"`
+	AssetStatisticTimeslot  uint32 `json:"asset_statistic_time_slot"`
+	TransferStatisticTimeslot  uint32 `json:"transfer_statistic_time_slot"`
 	LogLevel           uint32 `json:"loglevel"`
 }
 

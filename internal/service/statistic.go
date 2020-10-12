@@ -18,8 +18,8 @@ func (srv *Service) DoAssetStatistic() {
 	now := time.Now()
 	nowUnix := uint32(now.Unix())
 	end := (nowUnix / 60)
-	start := end - srv.c.Server.StatisticTimeslot
-	if end % srv.c.Server.StatisticTimeslot != 0 {
+	start := end - srv.c.Server.AssetStatisticTimeslot
+	if end % srv.c.Server.AssetStatisticTimeslot != 0 {
 		return
 	}
 	log.Infof("do asset statistic at time: %s", now.Format("2006-01-02 15:04:05"))
@@ -287,8 +287,8 @@ func (srv *Service) DoTransferStatistic() {
 	now := time.Now()
 	nowUnix := uint32(now.Unix())
 	end := (nowUnix / 60)
-	start := end - srv.c.Server.StatisticTimeslot
-	if end % srv.c.Server.StatisticTimeslot != 0 {
+	start := end - srv.c.Server.TransferStatisticTimeslot
+	if end % srv.c.Server.TransferStatisticTimeslot != 0 {
 		return
 	}
 	log.Infof("do transfer statistic at time: %s", now.Format("2006-01-02 15:04:05"))
