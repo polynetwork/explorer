@@ -29,6 +29,13 @@ CREATE TABLE `chain_token` (
   `xdesc` VARCHAR(1024) COMMENT 'token描述'
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `chain_token_bind`;
+CREATE TABLE `chain_token_bind` (
+  `hash_src` VARCHAR(64) NOT NULL COMMENT '源资产',
+  `hash_dest` VARCHAR(64) NOT NULL COMMENT '绑定的目标资产',
+  PRIMARY KEY (`hash_src`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("poly",0,0,22732,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("btc",1,1,0,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("eth",2,2,10650091,0,0);

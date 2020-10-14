@@ -669,35 +669,19 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 		var assetStatistic *model.AssetTransferStatisticResp
 		assetStatistic = nil
 		for _, item2 := range chainStatistic.AssetTransferStatistics {
-			if item2.Name == transferStatistic.Token {
+			if item2.Name == transferStatistic.Name {
 				assetStatistic = item2
 				break
 			}
 		}
 		if assetStatistic == nil {
 			assetStatistic = new(model.AssetTransferStatisticResp)
-			assetStatistic.Amount1 = big.NewInt(0)
-			assetStatistic.Name = transferStatistic.Token
-			assetStatistic.TokenTransferStatistics = make([]*model.TokenTransferStatisticResp, 0)
+			assetStatistic.Amount1 = transferStatistic.Amount
+			assetStatistic.Amount = exp.FormatAmount(uint64(100), transferStatistic.Amount)
+			assetStatistic.Name = transferStatistic.Name
+			assetStatistic.Hash = transferStatistic.Hash
 			chainStatistic.AssetTransferStatistics = append(chainStatistic.AssetTransferStatistics, assetStatistic)
 		}
-		var tokenStatistic *model.TokenTransferStatisticResp
-		tokenStatistic = nil
-		for _, item3 := range assetStatistic.TokenTransferStatistics {
-			if item3.Name == transferStatistic.Name {
-				tokenStatistic = item3
-				break
-			}
-		}
-		if tokenStatistic == nil {
-			tokenStatistic = new(model.TokenTransferStatisticResp)
-			tokenStatistic.Name = transferStatistic.Name
-			tokenStatistic.Hash = transferStatistic.Hash
-			tokenStatistic.Amount1 = transferStatistic.Amount
-			tokenStatistic.Amount = exp.FormatAmount(uint64(100), transferStatistic.Amount)
-			assetStatistic.TokenTransferStatistics = append(assetStatistic.TokenTransferStatistics, tokenStatistic)
-		}
-		assetStatistic.Amount1 = new(big.Int).Add(assetStatistic.Amount1, transferStatistic.Amount)
 	}
 	coinPrices := exp.coinPrice
 	bitcoinPrice, ok := coinPrices["Bitcoin"]
@@ -706,11 +690,9 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 		return allTransferStatistic
 	}
 	for _, item1 := range allTransferStatistic.ChainTransferStatistics {
-		amount_btc_total := big.NewInt(0)
-		amount_usd_total := big.NewInt(0)
+		other_amount_btc_total := big.NewInt(0)
 		other_amount_usd_total := big.NewInt(0)
 		for _, item2 := range item1.AssetTransferStatistics {
-			item2.Amount = exp.FormatAmount(uint64(100), item2.Amount1)
 			amount_btc := big.NewInt(0)
 			amount_usd := big.NewInt(0)
 			if item2.Name == common.UNISWAP_NAME {
@@ -734,9 +716,8 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 					item2.Amount_usd1 = amount_usd
 				}
 			}
-			amount_btc_total = new(big.Int).Add(amount_btc_total, amount_btc)
-			amount_usd_total = new(big.Int).Add(amount_usd_total, amount_usd)
 			if amount_usd.Cmp(big.NewInt(0)) == 1 {
+				other_amount_btc_total = new(big.Int).Add(other_amount_btc_total, amount_btc)
 				other_amount_usd_total = new(big.Int).Add(other_amount_usd_total, amount_usd)
 			}
 		}
@@ -745,22 +726,17 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 				item2.AmountUsdPrecent = exp.Precent(item2.Amount_usd1.Uint64(), other_amount_usd_total.Uint64())
 			}
 		}
-		item1.Amount1 = amount_usd_total
-		item1.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc_total)
-		item1.Amount_usd = exp.FormatAmount(uint64(10000), amount_usd_total)
+		item1.Amount_usd1 = other_amount_usd_total
+		item1.Amount_btc = exp.FormatAmount(uint64(10000), other_amount_btc_total)
+		item1.Amount_usd = exp.FormatAmount(uint64(10000), other_amount_usd_total)
 	}
 	sort.Slice(allTransferStatistic.ChainTransferStatistics, func(i, j int) bool {
-		return allTransferStatistic.ChainTransferStatistics[i].Amount1.Cmp(allTransferStatistic.ChainTransferStatistics[j].Amount1) == 1
+		return allTransferStatistic.ChainTransferStatistics[i].Amount_usd1.Cmp(allTransferStatistic.ChainTransferStatistics[j].Amount_usd1) == 1
 	})
 	for _, item1 := range allTransferStatistic.ChainTransferStatistics {
 		sort.Slice(item1.AssetTransferStatistics, func(i, j int) bool {
-			return item1.AssetTransferStatistics[i].Amount1.Cmp(item1.AssetTransferStatistics[j].Amount1) == 1
+			return item1.AssetTransferStatistics[i].Amount_usd1.Cmp(item1.AssetTransferStatistics[j].Amount_usd1) == 1
 		})
-		for _, item2 := range item1.AssetTransferStatistics {
-			sort.Slice(item2.TokenTransferStatistics, func(i, j int) bool {
-				return item2.TokenTransferStatistics[i].Amount1.Cmp(item2.TokenTransferStatistics[j].Amount1) == 1
-			})
-		}
 	}
 	return allTransferStatistic
 }

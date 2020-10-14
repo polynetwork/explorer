@@ -29,6 +29,13 @@ CREATE TABLE `chain_token` (
   `xdesc` VARCHAR(1024) COMMENT 'token描述'
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `chain_token_bind`;
+CREATE TABLE `chain_token_bind` (
+  `hash_src` VARCHAR(64) NOT NULL COMMENT '源资产',
+  `hash_dest` VARCHAR(64) NOT NULL COMMENT '绑定的目标资产',
+  PRIMARY KEY (`hash_src`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("poly",0,0,22732,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("btc",1,1,0,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("eth",2,2,10650091,0,0);
@@ -176,6 +183,86 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Uniswap", "1f9840a85d5af5bf1d1762f925bdaddc4201f984", "Uniswap", "ERC20", "1000000000000000000","Uniswap");
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Uniswap", "89029ef258b82c5c3741fe25db91375e9301dc71", "pUNI", "OEP4", "1000000000000000000","Uniswap");
+
+
+
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0200000000000000000000000000000000000000", "0200000000000000000000000000000000000000");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0100000000000000000000000000000000000000", "0100000000000000000000000000000000000000");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0000000000000000000000000000000000000000", "0000000000000000000000000000000000000000");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("b951ecbbc5fe37a9c280a76cb0ce0014827294cf", "b951ecbbc5fe37a9c280a76cb0ce0014827294cf");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("64626331", "b951ecbbc5fe37a9c280a76cb0ce0014827294cf");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("ab38352559b8b203bde5fddfa0b07d8b2525e132", "ab38352559b8b203bde5fddfa0b07d8b2525e132");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("73777468", "ab38352559b8b203bde5fddfa0b07d8b2525e132");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("c8757865920e0467f5d23b59845aa357a24ea38c", "0200000000000000000000000000000000000000");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("cb46c550539ac3db72dc7af7c89b11c306c727c2", "33ae7eae016193ba0fe238b223623bc78faac158");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("cb46c550539ac3db72dc7af7c89b11c306c727c2", "cb46c550539ac3db72dc7af7c89b11c306c727c2");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("8037dd7161401417d3571b92b86846d34309129a", "2260fac5e5542a773aa44fbcfedf7c193bc2c599");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("a2f89e531e55636d4af1cd044237d2fd5a616c72", "0000000000000000000000000000000000000000");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("3e931f60f2cd1387b52f1889dfcaf02a54b2c6a0", "dac17f958d2ee523a2206206994597c13d831ec7");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("061a07cd393aac289b8ecfda2c3784b637a2fb33", "a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("3f0def1945d7129c5f6625147dcbbaaee402e751", "6b175474e89094c44da98b954eedeac495271d0f");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("dac17f958d2ee523a2206206994597c13d831ec7", "dac17f958d2ee523a2206206994597c13d831ec7");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("2260fac5e5542a773aa44fbcfedf7c193bc2c599", "2260fac5e5542a773aa44fbcfedf7c193bc2c599");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("6b175474e89094c44da98b954eedeac495271d0f", "6b175474e89094c44da98b954eedeac495271d0f");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("33ae7eae016193ba0fe238b223623bc78faac158", "33ae7eae016193ba0fe238b223623bc78faac158");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("eb4c2781e4eba804ce9a9803c67d0893436bb27d", "eb4c2781e4eba804ce9a9803c67d0893436bb27d");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("46c3051c553aaeb3724ea69336ec483f39fa91b1", "eb4c2781e4eba804ce9a9803c67d0893436bb27d");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("6a4c89eb9a26a2da34f13f8976daa9fd7526f35c", "0200000000000000000000000000000000000000");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("db0f18081b505a7de20b18ac41856bcb4ba86a1a", "00c59fcd27a562d6397883eab1f2fff56e58ef80");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("00c59fcd27a562d6397883eab1f2fff56e58ef80", "00c59fcd27a562d6397883eab1f2fff56e58ef80");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("57ab1ec28d129707052df4df418d58a2d46d5f51", "57ab1ec28d129707052df4df418d58a2d46d5f51");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("17a58a4a65959c2f567e5063c560f9d09fb81284", "57ab1ec28d129707052df4df418d58a2d46d5f51");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("8e870d67f660d95d5be530380d0ec0bd388289e1", "8e870d67f660d95d5be530380d0ec0bd388289e1");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0dabee6055a1c17e3b4bcb15af1a713605b7fcfc", "8e870d67f660d95d5be530380d0ec0bd388289e1");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("381225768dd2bd60d70482b51109d0defee92503", "f46719e2d16bf50cddcef9d4bbfece901f73cbb6");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("9a576d927dda934b8ce69f35ec2c1025ceb10e6f", "f46719e2d16bf50cddcef9d4bbfece901f73cbb6");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("17c76859c11bc14da5b3e9c88fa695513442c606", "0000000000000000000000000000000000000000");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("271e1e4616158c7440ffd1d5ca51c0c12c792833", "33ae7eae016193ba0fe238b223623bc78faac158");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0df563008be710f3e0130208f8adc95ed7e5518d", "e179198fd42f5de1a04ffd9a36d6dc428ceb13f7");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("e179198fd42f5de1a04ffd9a36d6dc428ceb13f7", "e179198fd42f5de1a04ffd9a36d6dc428ceb13f7");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("f46719e2d16bf50cddcef9d4bbfece901f73cbb6", "f46719e2d16bf50cddcef9d4bbfece901f73cbb6");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("c277117879af3197fbef92c71e95800aa3b89d9a", "33ae7eae016193ba0fe238b223623bc78faac158");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("282e3340d5a1cd6a461d5f558d91bc1dbc02a07b", "2205d2f559ef91580090011aa4e0ef68ec33da44");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("2205d2f559ef91580090011aa4e0ef68ec33da44", "2205d2f559ef91580090011aa4e0ef68ec33da44");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("534dcac35b0dfadc7b2d716a7a73a7067c148b37", "bb44b36e588445d7da61a1e2e426664d03d40888");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("bb44b36e588445d7da61a1e2e426664d03d40888", "bb44b36e588445d7da61a1e2e426664d03d40888");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("7757ffe3ac09bc6430f6896f720e77cf80ec1f74", "7757ffe3ac09bc6430f6896f720e77cf80ec1f74");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("2dd56dc238d1fc2f9aac3793a287f4e0af1b08b4", "2dd56dc238d1fc2f9aac3793a287f4e0af1b08b4");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("886f6f287bb2ea7de03830a5fd339edc107c559f", "886f6f287bb2ea7de03830a5fd339edc107c559f");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("7f0ad0525cb8c17d3f5c06ceb0aea20fa0d2ca0a", "7f0ad0525cb8c17d3f5c06ceb0aea20fa0d2ca0a");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("7245ded8459f59b0a680640535476c11b3cd0ef6", "7245ded8459f59b0a680640535476c11b3cd0ef6");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("7b956c0c11fcffb9c9227ca1925ba4c3486b36f1", "6b175474e89094c44da98b954eedeac495271d0f");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("df19600d334bb13c6a9e3e9777aa8ec6ed6a4a79", "0000000000000000000000000000000000000000");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("ac654837a90eee8fccabd87a2d4fc7637484f01a", "dac17f958d2ee523a2206206994597c13d831ec7");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("6c5fa7a3c2cd98a689b1305bd38b56120fe15744", "6c5fa7a3c2cd98a689b1305bd38b56120fe15744");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("c534d65c85c074887f58ed1f3bad7dfd739a525e", "6c5fa7a3c2cd98a689b1305bd38b56120fe15744");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("c6061ca95ad0378bdb12381206a1d723d14b72c4", "4d9eab13620fe3569ba3b0e56e2877739e4145e3");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("4d9eab13620fe3569ba3b0e56e2877739e4145e3", "4d9eab13620fe3569ba3b0e56e2877739e4145e3");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("1f9840a85d5af5bf1d1762f925bdaddc4201f984", "1f9840a85d5af5bf1d1762f925bdaddc4201f984");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("89029ef258b82c5c3741fe25db91375e9301dc71", "1f9840a85d5af5bf1d1762f925bdaddc4201f984");
+
 
 
 
