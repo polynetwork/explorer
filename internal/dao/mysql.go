@@ -71,7 +71,8 @@ const (
 	_selectTransferOutHistory       =  "select amount, tt from fchain_transfer where asset = ? and tt > ?"
 	_selectTransferInHistory        =  "select amount, tt from tchain_transfer where asset = ? and tt > ?"
 	_updateTransferStatistic        =  "update transfer_statistic set amount = ?, latestin = ?, latestout = ? where asset = ?"
-	_selectAllTransferStatistic     =  "select A.asset, A.amount, B.xtoken, B.id, B.xname from transfer_statistic A left join chain_token B on A.asset = B.hash"
+	_selectAllTransferStatistic     =  "select A.asset, A.amount, B.xtoken, B.id, B.xname, D.xname, D.id  from transfer_statistic A left join chain_token B on A.asset = B.hash left join chain_token_bind C on A.asset = C.hash_src left join chain_token D on C.hash_dest = D.hash"
+	_selectAllTransferStatisticInChain     =  "select A.asset, A.amount, B.xtoken, B.id, B.xname, D.xname, D.id  from transfer_statistic A left join chain_token B on A.asset = B.hash left join chain_token_bind C on A.asset = C.hash_src left join chain_token D on C.hash_dest = D.hash where B.id = ?"
 	)
 
 func (d *Dao) InsertTChainTx(t *model.TChainTx) (err error) {
@@ -830,16 +831,22 @@ func (d *Dao) UpdateTransferStatistic(transferStatistic *model.TransferStatistic
 }
 
 
-func (d *Dao) SelectAllTransferStatistic() (res []*model.AllTransferStatistic, err error) {
+func (d *Dao) SelectAllTransferStatistic(chainid int) (res []*model.AllTransferStatistic, err error) {
 	var rows *sql.Rows
-	if rows, err = d.db.Query(_selectAllTransferStatistic); err != nil {
-		return
+	if chainid == 0 {
+		if rows, err = d.db.Query(_selectAllTransferStatistic); err != nil {
+			return
+		}
+	} else {
+		if rows, err = d.db.Query(_selectAllTransferStatisticInChain, chainid); err != nil {
+			return
+		}
 	}
 	defer rows.Close()
 	for rows.Next() {
 		r := new(model.AllTransferStatistic)
 		Amount := int64(0)
-		if err = rows.Scan(&r.Hash, &Amount, &r.Token, &r.Chain, &r.Name); err != nil {
+		if err = rows.Scan(&r.Hash, &Amount, &r.Token, &r.Chain, &r.Name, &r.SourceName, &r.SourceChain); err != nil {
 			res = nil
 			return
 		}

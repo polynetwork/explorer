@@ -278,7 +278,18 @@ func GetAssetStatistic(cmd map[string]interface{}) map[string]interface{} {
 }
 
 func GetTransferStatistic(cmd map[string]interface{}) map[string]interface{} {
-	code, result := srv.GetTransferStatistic()
+	if cmd["txhash"] == nil {
+		return ResponsePack(error.REST_PARAM_INVALID)
+	}
+	chain, ok := cmd["chain"].(string)
+	if !ok {
+		return ResponsePack(error.REST_PARAM_INVALID)
+	}
+	chainId, err := strconv.Atoi(chain)
+	if err != nil {
+		return ResponsePack(error.REST_PARAM_INVALID)
+	}
+	code, result := srv.GetTransferStatistic(chainId)
 	if code != error.SUCCESS {
 		return ResponsePack(code)
 	}

@@ -358,7 +358,17 @@ func (exp *Service) FormatAmount(precision uint64, amount *big.Int) string {
 	precision_new := big.NewFloat(float64(precision))
 	amount_new, _ := new(big.Float).SetString(amount.String())
 	amount_new.Quo(amount_new, precision_new)
-	return amount_new.String()
+	result := amount_new.Text('f',18)
+	index := len(result) - 2
+	for ;index >=0;index -- {
+		if result[index] == '0' || result[index] == '.' {
+			continue
+		} else {
+			break
+		}
+	}
+	result = result[0: index]
+	return result
 }
 
 func (exp *Service) FormatFee(chain uint32, fee uint64) string {

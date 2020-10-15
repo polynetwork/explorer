@@ -182,4 +182,6 @@ type AllTransferStatistic struct {
 	Amount     *big.Int    `json:"amount"`
 	Chain      uint32      `json:"chainid"`
 	Name       string      `json:"name"`
+	SourceName string      `json:"source_name"`
+	SourceChain uint32     `json:"source_chain"`
 }

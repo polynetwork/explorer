@@ -347,12 +347,12 @@ type AddressTxListResponse struct {
 
 type AssetStatisticResp struct {
 	Name         string    `json:"name"`
-	Addressnum   uint32    `json:"addressnumber"`
-	AddressnumPrecent string   `json:"addressnumber_precent"`
+	AddressNum   uint32    `json:"addressnumber"`
+	AddressNumPrecent string   `json:"addressnumber_precent"`
 	Amount       string    	`json:"amount"`
-	Amount_btc   string    `json:"amount_btc"`
+	AmountBtc   string    `json:"amount_btc"`
 	AmountBtcPrecent string   `json:"amount_btc_precent"`
-	Amount_usd   string    `json:"amount_usd"`
+	AmountUsd   string    `json:"amount_usd"`
 	AmountUsdPrecent string   `json:"Amount_usd_precent"`
 	TxNum        uint32    `json:"txnumber"`
 	TxNumPrecent string    `json:"txnumber_precent"`
@@ -377,18 +377,21 @@ type AssetTransferStatisticResp struct {
 	Hash         string    `json:"hash"`
 	Amount       string    `json:"amount"`
 	Amount1      *big.Int
-	Amount_btc   string    `json:"amount_btc"`
-	Amount_usd   string    `json:"amount_usd"`
+	AmountBtc   string    `json:"amount_btc"`
+	AmountUsd   string    `json:"amount_usd"`
 	AmountUsdPrecent string   `json:"Amount_usd_precent"`
-	Amount_usd1  *big.Int
+	AmountUsd1  *big.Int
+	SourceName  string   `json:"source_name"`
+	SourceChain uint32  `json:"source_chainid"`
+	SourceChainName string `json:"source_chainname"`
 }
 
 type ChainTransferStatisticResp struct {
 	Chain        uint32    `json:"chainid"`
 	ChainName    string    `json:"chainname"`
-	Amount_btc   string    `json:"amount_btc"`
-	Amount_usd   string    `json:"amount_usd"`
-	Amount_usd1      *big.Int
+	AmountBtc   string    `json:"amount_btc"`
+	AmountUsd   string    `json:"amount_usd"`
+	AmountUsd1      *big.Int
 	AssetTransferStatistics []*AssetTransferStatisticResp   `json:"asset_transfer_statistics"`
 }
 

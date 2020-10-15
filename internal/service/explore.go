@@ -631,12 +631,12 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 	for _, assetStatistic := range assetStatistics {
 		assetStatisticResp := &model.AssetStatisticResp{
 			Name: assetStatistic.Name,
-			Addressnum: assetStatistic.Addressnum,
-			AddressnumPrecent: exp.Precent(uint64(assetStatistic.Addressnum), uint64(addressNumberTotal)),
+			AddressNum: assetStatistic.Addressnum,
+			AddressNumPrecent: exp.Precent(uint64(assetStatistic.Addressnum), uint64(addressNumberTotal)),
 			Amount: exp.FormatAmount(uint64(100), assetStatistic.Amount),
-			Amount_btc: exp.FormatAmount(uint64(10000), assetStatistic.Amount_btc),
+			AmountBtc: exp.FormatAmount(uint64(10000), assetStatistic.Amount_btc),
 			AmountBtcPrecent: exp.Precent(assetStatistic.Amount_btc.Uint64(), amountBtcTotal.Uint64()),
-			Amount_usd: exp.FormatAmount(uint64(10000), assetStatistic.Amount_usd),
+			AmountUsd: exp.FormatAmount(uint64(10000), assetStatistic.Amount_usd),
 			AmountUsdPrecent: exp.Precent(assetStatistic.Amount_usd.Uint64(), amountUsdTotal.Uint64()),
 			TxNum: assetStatistic.TxNum,
 			TxNumPrecent: exp.Precent(uint64(assetStatistic.TxNum), uint64(txNumTotal)),
@@ -680,6 +680,9 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 			assetStatistic.Amount = exp.FormatAmount(uint64(100), transferStatistic.Amount)
 			assetStatistic.Name = transferStatistic.Name
 			assetStatistic.Hash = transferStatistic.Hash
+			assetStatistic.SourceName = transferStatistic.SourceName
+			assetStatistic.SourceChain = transferStatistic.SourceChain
+			assetStatistic.SourceChainName = exp.ChainId2Name(transferStatistic.SourceChain)
 			chainStatistic.AssetTransferStatistics = append(chainStatistic.AssetTransferStatistics, assetStatistic)
 		}
 	}
@@ -697,23 +700,23 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 			amount_usd := big.NewInt(0)
 			if item2.Name == common.UNISWAP_NAME {
 				amount_btc = exp.updateUniswap(item2.Amount1)
-				item2.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc)
+				item2.AmountBtc = exp.FormatAmount(uint64(10000), amount_btc)
 				amount_usd = new(big.Int).Mul(amount_btc, big.NewInt(int64(bitcoinPrice)))
-				item2.Amount_usd  = exp.FormatAmount(uint64(10000), amount_usd)
-				item2.Amount_usd1 = amount_usd
+				item2.AmountUsd  = exp.FormatAmount(uint64(10000), amount_usd)
+				item2.AmountUsd1 = amount_usd
 			} else {
 				coinPrice, ok := coinPrices[item2.Name]
 				if !ok {
 					log.Warnf("There is no coin %s!", item2.Name)
-					item2.Amount_usd = exp.FormatAmount(uint64(10000), big.NewInt(0))
-					item2.Amount_btc = exp.FormatAmount(uint64(10000), big.NewInt(0))
-					item2.Amount_usd1 = big.NewInt(0)
+					item2.AmountUsd = exp.FormatAmount(uint64(10000), big.NewInt(0))
+					item2.AmountBtc = exp.FormatAmount(uint64(10000), big.NewInt(0))
+					item2.AmountUsd1 = big.NewInt(0)
 				} else {
 					amount_usd = new(big.Int).Mul(item2.Amount1, big.NewInt(int64(coinPrice*100)))
-					item2.Amount_usd = exp.FormatAmount(uint64(10000), amount_usd)
+					item2.AmountUsd = exp.FormatAmount(uint64(10000), amount_usd)
 					amount_btc = new(big.Int).Div(amount_usd, big.NewInt(int64(bitcoinPrice)))
-					item2.Amount_btc = exp.FormatAmount(uint64(10000), amount_btc)
-					item2.Amount_usd1 = amount_usd
+					item2.AmountBtc = exp.FormatAmount(uint64(10000), amount_btc)
+					item2.AmountUsd1 = amount_usd
 				}
 			}
 			if amount_usd.Cmp(big.NewInt(0)) == 1 {
@@ -722,20 +725,20 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 			}
 		}
 		for _, item2 := range item1.AssetTransferStatistics {
-			if item2.Amount_usd1.Cmp(big.NewInt(0)) == 1 {
-				item2.AmountUsdPrecent = exp.Precent(item2.Amount_usd1.Uint64(), other_amount_usd_total.Uint64())
+			if item2.AmountUsd1.Cmp(big.NewInt(0)) == 1 {
+				item2.AmountUsdPrecent = exp.Precent(item2.AmountUsd1.Uint64(), other_amount_usd_total.Uint64())
 			}
 		}
-		item1.Amount_usd1 = other_amount_usd_total
-		item1.Amount_btc = exp.FormatAmount(uint64(10000), other_amount_btc_total)
-		item1.Amount_usd = exp.FormatAmount(uint64(10000), other_amount_usd_total)
+		item1.AmountUsd1 = other_amount_usd_total
+		item1.AmountBtc = exp.FormatAmount(uint64(10000), other_amount_btc_total)
+		item1.AmountUsd = exp.FormatAmount(uint64(10000), other_amount_usd_total)
 	}
 	sort.Slice(allTransferStatistic.ChainTransferStatistics, func(i, j int) bool {
-		return allTransferStatistic.ChainTransferStatistics[i].Amount_usd1.Cmp(allTransferStatistic.ChainTransferStatistics[j].Amount_usd1) == 1
+		return allTransferStatistic.ChainTransferStatistics[i].AmountUsd1.Cmp(allTransferStatistic.ChainTransferStatistics[j].AmountUsd1) == 1
 	})
 	for _, item1 := range allTransferStatistic.ChainTransferStatistics {
 		sort.Slice(item1.AssetTransferStatistics, func(i, j int) bool {
-			return item1.AssetTransferStatistics[i].Amount_usd1.Cmp(item1.AssetTransferStatistics[j].Amount_usd1) == 1
+			return item1.AssetTransferStatistics[i].AmountUsd1.Cmp(item1.AssetTransferStatistics[j].AmountUsd1) == 1
 		})
 	}
 	return allTransferStatistic
@@ -748,8 +751,8 @@ func (exp *Service) GetLatestValidator() (int64, string) {
 	if err != nil {
 		return myerror.DB_CONNECTTION_FAILED, ""
 	}
-	validators_json, _ := json.Marshal(validators)
-	return myerror.SUCCESS, string(validators_json)
+	validatorsJson, _ := json.Marshal(validators)
+	return myerror.SUCCESS, string(validatorsJson)
 }
 
 // GetCrossTx gets cross tx by Tx
@@ -760,18 +763,18 @@ func (exp *Service) GetAssetStatistic() (int64, string) {
 		return myerror.DB_CONNECTTION_FAILED, ""
 	}
 	assetInfo := exp.outputAssetInfo(assetStatistics)
-	assetInfo_json, _ := json.Marshal(assetInfo)
-	return myerror.SUCCESS, string(assetInfo_json)
+	assetInfoJson, _ := json.Marshal(assetInfo)
+	return myerror.SUCCESS, string(assetInfoJson)
 }
 
-func (exp *Service) GetTransferStatistic() (int64, string) {
+func (exp *Service) GetTransferStatistic(chainid int) (int64, string) {
 	log.Infof("GetTransferStatistic")
-	transferStatistics, err := exp.dao.SelectAllTransferStatistic()
+	transferStatistics, err := exp.dao.SelectAllTransferStatistic(chainid)
 	if err != nil {
 		return myerror.DB_CONNECTTION_FAILED, ""
 	}
 	transferInfo := exp.outputTransferStatistic(transferStatistics)
-	transferInfo_json, _ := json.Marshal(transferInfo)
-	return myerror.SUCCESS, string(transferInfo_json)
+	transferInfoJson, _ := json.Marshal(transferInfo)
+	return myerror.SUCCESS, string(transferInfoJson)
 }
 

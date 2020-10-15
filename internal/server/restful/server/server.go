@@ -144,6 +144,8 @@ func (this *RestServer) getParams(r *http.Request, url string, req map[string]in
 	switch url {
 	case GET_CROSSTX:
 		req["txhash"] = getParam(r, "txhash")
+	case GET_TRANSFER_STATISTIC:
+		req["chain"] = getParam(r, "chain")
 	default:
 	}
 	return req
