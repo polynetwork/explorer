@@ -361,13 +361,20 @@ func (exp *Service) FormatAmount(precision uint64, amount *big.Int) string {
 	result := amount_new.Text('f',18)
 	index := len(result) - 2
 	for ;index >=0;index -- {
-		if result[index] == '0' || result[index] == '.' {
+		if result[index] == '0' {
 			continue
+		} else if result[index] == '.' {
+			index --
+			break
 		} else {
 			break
 		}
 	}
-	result = result[0: index]
+	if index <= 0 {
+		result = "0"
+	} else {
+		result = result[0:index]
+	}
 	return result
 }
 
