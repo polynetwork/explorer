@@ -35,7 +35,7 @@ const (
 const (
 	BTC_TOKEN_NAME = "btc"
 	BTC_TOKEN_HASH = "0000000000000000000000000000000000000011"
-	UNISWAP_NAME = "UNI"
+	UNISWAP_NAME = "UNI_V2_ETH_WBTC"
 )
 
 func HexString2Base58Address(address string) string {

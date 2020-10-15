@@ -172,8 +172,8 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "UNI", "6c5fa7a3c2cd98a689b1305bd38b56120fe15744", "normalized Uniswap V2", "ERC20", "1000000000000000000","nUNI-V2");
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "UNI", "c534d65c85c074887f58ed1f3bad7dfd739a525e", "pnUNI_V2_ETH_WBTC", "NEP5", "1000000000000000000","nUNI-V2");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "UNI_V2_ETH_WBTC", "6c5fa7a3c2cd98a689b1305bd38b56120fe15744", "normalized Uniswap V2", "ERC20", "1000000000000000000","nUNI-V2");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(4, "UNI_V2_ETH_WBTC", "c534d65c85c074887f58ed1f3bad7dfd739a525e", "pnUNI_V2_ETH_WBTC", "NEP5", "1000000000000000000","nUNI-V2");
 
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "FLM", "c6061ca95ad0378bdb12381206a1d723d14b72c4", "Poly Flamingo Token", "ERC20", "100000000","FLM");
