@@ -679,6 +679,7 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 			assetStatistic.Amount1 = transferStatistic.Amount
 			assetStatistic.Amount = exp.FormatAmount(uint64(100), transferStatistic.Amount)
 			assetStatistic.Name = transferStatistic.Name
+			assetStatistic.Token = transferStatistic.Token
 			assetStatistic.Hash = transferStatistic.Hash
 			assetStatistic.SourceName = transferStatistic.SourceName
 			assetStatistic.SourceChain = transferStatistic.SourceChain
@@ -705,7 +706,7 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 				item2.AmountUsd  = exp.FormatAmount(uint64(10000), amount_usd)
 				item2.AmountUsd1 = amount_usd
 			} else {
-				coinPrice, ok := coinPrices[item2.Name]
+				coinPrice, ok := coinPrices[item2.Token]
 				if !ok {
 					log.Warnf("There is no coin %s!", item2.Name)
 					item2.AmountUsd = exp.FormatAmount(uint64(10000), big.NewInt(0))

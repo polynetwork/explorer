@@ -355,27 +355,10 @@ func (exp *Service) Hash2Address(chainId uint32, value string) string {
 }
 
 func (exp *Service) FormatAmount(precision uint64, amount *big.Int) string {
-	precision_new := big.NewFloat(float64(precision))
-	amount_new, _ := new(big.Float).SetString(amount.String())
-	amount_new.Quo(amount_new, precision_new)
-	result := amount_new.Text('f',18)
-	index := len(result) - 2
-	for ;index >=0;index -- {
-		if result[index] == '0' {
-			continue
-		} else if result[index] == '.' {
-			index --
-			break
-		} else {
-			break
-		}
-	}
-	if index <= 0 {
-		result = "0"
-	} else {
-		result = result[0:index]
-	}
-	return result
+	amount_new := decimal.NewFromBigInt(amount, 0)
+	precision_new := decimal.NewFromBigInt(new(big.Int).SetInt64(int64(precision)), 0)
+	result := amount_new.Div(precision_new)
+	return result.String()
 }
 
 func (exp *Service) FormatFee(chain uint32, fee uint64) string {

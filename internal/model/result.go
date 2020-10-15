@@ -374,6 +374,7 @@ type TokenTransferStatisticResp struct {
 
 type AssetTransferStatisticResp struct {
 	Name         string    `json:"name"`
+	Token        string    `json:"token"`
 	Hash         string    `json:"hash"`
 	Amount       string    `json:"amount"`
 	Amount1      *big.Int
