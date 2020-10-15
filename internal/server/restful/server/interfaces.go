@@ -278,9 +278,6 @@ func GetAssetStatistic(cmd map[string]interface{}) map[string]interface{} {
 }
 
 func GetTransferStatistic(cmd map[string]interface{}) map[string]interface{} {
-	if cmd["txhash"] == nil {
-		return ResponsePack(error.REST_PARAM_INVALID)
-	}
 	chain, ok := cmd["chain"].(string)
 	if !ok {
 		return ResponsePack(error.REST_PARAM_INVALID)
