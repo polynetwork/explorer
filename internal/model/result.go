@@ -393,6 +393,9 @@ type ChainTransferStatisticResp struct {
 	AmountBtc   string    `json:"amount_btc"`
 	AmountUsd   string    `json:"amount_usd"`
 	AmountUsd1      *big.Int
+	In        uint32               `json:"in"`
+	Out       uint32               `json:"out"`
+	Addresses uint32               `json:"addresses"`
 	AssetTransferStatistics []*AssetTransferStatisticResp   `json:"asset_transfer_statistics"`
 }
 

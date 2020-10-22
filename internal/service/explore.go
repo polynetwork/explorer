@@ -647,7 +647,7 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 	return assetInfo
 }
 
-func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTransferStatistic) *model.AllTransferStatisticResp {
+func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTransferStatistic, chainAddress []*model.CrossChainAddressNum, chains []*model.ChainInfo) *model.AllTransferStatisticResp {
 	allTransferStatistic := new(model.AllTransferStatisticResp)
 	allTransferStatistic.ChainTransferStatistics = make([]*model.ChainTransferStatisticResp, 0)
 	for _, transferStatistic := range transferStatistics {
@@ -742,6 +742,20 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 			return item1.AssetTransferStatistics[i].AmountUsd1.Cmp(item1.AssetTransferStatistics[j].AmountUsd1) == 1
 		})
 	}
+	//
+	for _, item1 := range allTransferStatistic.ChainTransferStatistics {
+		for _, item2 := range chainAddress {
+			if item2.Id == item1.Chain {
+				item1.Addresses = item2.AddNum
+			}
+		}
+		for _, item2 := range chains {
+			if item2.Id == item1.Chain {
+				item1.In = item2.In
+				item1.Out = item2.Out
+			}
+		}
+	}
 	return allTransferStatistic
 }
 
@@ -772,7 +786,13 @@ func (exp *Service) GetTransferStatistic(chainid int) (int64, string) {
 	log.Infof("GetTransferStatistic")
 	transferStatistics, err := exp.dao.SelectAllTransferStatistic(chainid)
 	if err != nil {
+		log.Errorf("GetTransferStatistic: SelectAllTransferStatistic %s", err)
 		return myerror.DB_CONNECTTION_FAILED, ""
+	}
+	allChainAddressNum, err := exp.dao.SelectChainAddressNum()
+	if err != nil {
+		log.Errorf("GetTransferStatistic: SelectChainAddressNum %s", err)
+		return myerror.DB_LOADDATA_FAILED, ""
 	}
 	transferInfo := exp.outputTransferStatistic(transferStatistics)
 	transferInfoJson, _ := json.Marshal(transferInfo)
