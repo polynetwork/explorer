@@ -753,6 +753,7 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 			if item2.Id == item1.Chain {
 				item1.In = item2.In
 				item1.Out = item2.Out
+				item1.Height = item2.Height
 			}
 		}
 	}

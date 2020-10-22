@@ -396,6 +396,7 @@ type ChainTransferStatisticResp struct {
 	In        uint32               `json:"in"`
 	Out       uint32               `json:"out"`
 	Addresses uint32               `json:"addresses"`
+	Height    uint32               `json:"blockheight"`
 	AssetTransferStatistics []*AssetTransferStatisticResp   `json:"asset_transfer_statistics"`
 }
 
