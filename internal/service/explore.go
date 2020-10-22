@@ -794,7 +794,7 @@ func (exp *Service) GetTransferStatistic(chainid int) (int64, string) {
 		log.Errorf("GetTransferStatistic: SelectChainAddressNum %s", err)
 		return myerror.DB_LOADDATA_FAILED, ""
 	}
-	transferInfo := exp.outputTransferStatistic(transferStatistics)
+	transferInfo := exp.outputTransferStatistic(transferStatistics, allChainAddressNum, exp.chain)
 	transferInfoJson, _ := json.Marshal(transferInfo)
 	return myerror.SUCCESS, string(transferInfoJson)
 }
