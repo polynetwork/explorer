@@ -772,7 +772,11 @@ func (d *Dao) SelectTransferOutHistory(start uint32, hash string)  (res *model.T
 	}
 	tt := start
 	for _, item := range oriRes {
-		amount, _ := new(big.Int).SetString(item.Amount, 10)
+		amount := big.NewInt(0)
+		amount, ok := new(big.Int).SetString(item.Amount, 10)
+		if !ok {
+			amount = big.NewInt(0)
+		}
 		res.Amount = new(big.Int).Add(res.Amount, amount)
 		if item.TT > tt {
 			tt = item.TT
@@ -813,7 +817,11 @@ func (d *Dao) SelectTransferInHistory(start uint32, hash string)  (res *model.Tr
 	}
 	tt := start
 	for _, item := range oriRes {
-		amount, _ := new(big.Int).SetString(item.Amount, 10)
+		amount := big.NewInt(0)
+		amount, ok := new(big.Int).SetString(item.Amount, 10)
+		if !ok {
+			amount = big.NewInt(0)
+		}
 		res.Amount = new(big.Int).Add(res.Amount, amount)
 		if item.TT > tt {
 			tt = item.TT
