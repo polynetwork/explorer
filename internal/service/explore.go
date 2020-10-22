@@ -795,7 +795,16 @@ func (exp *Service) GetTransferStatistic(chainid int) (int64, string) {
 		log.Errorf("GetTransferStatistic: SelectChainAddressNum %s", err)
 		return myerror.DB_LOADDATA_FAILED, ""
 	}
-	transferInfo := exp.outputTransferStatistic(transferStatistics, allChainAddressNum, exp.chain)
+	chainInfos, err := exp.dao.SelectAllChainInfos()
+	if err != nil {
+		log.Errorf("GetTransferStatistic: SelectAllChainInfos %s", err)
+		return myerror.DB_LOADDATA_FAILED, ""
+	}
+	if chainInfos == nil {
+		log.Errorf("GetTransferStatistic: there is no chain!")
+		return myerror.DB_LOADDATA_FAILED, ""
+	}
+	transferInfo := exp.outputTransferStatistic(transferStatistics, allChainAddressNum, chainInfos)
 	transferInfoJson, _ := json.Marshal(transferInfo)
 	return myerror.SUCCESS, string(transferInfoJson)
 }

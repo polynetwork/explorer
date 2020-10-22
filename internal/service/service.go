@@ -34,6 +34,7 @@ import (
 	ontcommon "github.com/ontio/ontology/common"
 	"github.com/shopspring/decimal"
 	"math/big"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -144,16 +145,21 @@ func (exp *Service) updateCoinPrice() {
 }
 
 func (exp *Service) Start(context *ctx.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Error("service start, recover info:", r)
-		}
-	}()
-
 	exp.CheckChains(context)
 	exp.Statistic()
 	exp.updateCoinPrice()
 
+	for {
+		exp.Start1(context)
+	}
+}
+
+func (exp *Service) Start1(context *ctx.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("service start, recover info: %s", string(debug.Stack()))
+		}
+	}()
 	t := time.NewTicker(60 * time.Second)
 	for {
 		select {
