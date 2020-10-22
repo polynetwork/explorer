@@ -650,6 +650,7 @@ func (exp *Service) outputAssetInfo(assetStatistics []*model.AssetStatistic) *mo
 func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTransferStatistic, chainAddress []*model.CrossChainAddressNum, chains []*model.ChainInfo) *model.AllTransferStatisticResp {
 	allTransferStatistic := new(model.AllTransferStatisticResp)
 	allTransferStatistic.ChainTransferStatistics = make([]*model.ChainTransferStatisticResp, 0)
+	allTransferStatistic.AmountUsd1 = big.NewInt(0)
 	for _, transferStatistic := range transferStatistics {
 		var chainStatistic *model.ChainTransferStatisticResp
 		chainStatistic = nil
@@ -756,7 +757,12 @@ func (exp *Service) outputTransferStatistic(transferStatistics []*model.AllTrans
 				item1.Height = item2.Height
 			}
 		}
+		allTransferStatistic.AmountUsd1 = new(big.Int).Add(allTransferStatistic.AmountUsd1, item1.AmountUsd1)
+		allTransferStatistic.Addresses = allTransferStatistic.Addresses + item1.Addresses
+		allTransferStatistic.Transactions = allTransferStatistic.Transactions + item1.In
+		allTransferStatistic.Transactions = allTransferStatistic.Transactions + item1.Out
 	}
+	allTransferStatistic.AmountUsd = exp.FormatAmount(uint64(10000), allTransferStatistic.AmountUsd1)
 	return allTransferStatistic
 }
 

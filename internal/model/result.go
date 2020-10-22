@@ -402,5 +402,9 @@ type ChainTransferStatisticResp struct {
 
 type AllTransferStatisticResp struct {
 	ChainTransferStatistics []*ChainTransferStatisticResp   `json:"chain_transfer_statistics"`
+	AmountUsd1      *big.Int
+	AmountUsd   string    `json:"amounts_usd"`
+	Addresses   uint32     `json:"addresses"`
+	Transactions uint32   `json:"transactions"`
 }
 
