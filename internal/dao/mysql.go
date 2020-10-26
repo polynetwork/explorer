@@ -616,7 +616,12 @@ func (d *Dao) SelectAssetTxInfo(start uint32, end uint32)  (res []*model.AssetTx
 		}
 		r.Name = item.Name
 		r.TxNum ++
-		amount, _ := new(big.Int).SetString(item.Amount, 10)
+
+		amount := big.NewInt(0)
+		amount, ok := new(big.Int).SetString(item.Amount, 10)
+		if !ok {
+			amount = big.NewInt(0)
+		}
 		r.Amount = new(big.Int).Add(r.Amount, amount)
 	}
 	if r.Name != "" && r.TxNum != 0 {
@@ -701,7 +706,11 @@ func (d *Dao) SelectAssetHistory(start uint32, end uint32, name string)  (res *m
 		return nil, err
 	}
 	for _, item := range oriRes {
-		amount, _ := new(big.Int).SetString(item.Amount, 10)
+		amount := big.NewInt(0)
+		amount, ok := new(big.Int).SetString(item.Amount, 10)
+		if !ok {
+			amount = big.NewInt(0)
+		}
 		res.Amount = new(big.Int).Add(res.Amount, amount)
 		res.TxNum ++
 	}
