@@ -144,10 +144,21 @@ func (exp *Service) updateCoinPrice() {
 	exp.coinPrice = coinPrice
 }
 
+func (exp *Service) UpdateCoinPrice() {
+	now := time.Now()
+	nowUnix := uint32(now.Unix())
+	end := (nowUnix / 60)
+	if end % exp.c.Server.AssetStatisticTimeslot != 0 {
+		return
+	}
+	log.Infof("do update coin price at time: %s", now.Format("2006-01-02 15:04:05"))
+	exp.updateCoinPrice()
+}
+
 func (exp *Service) Start(context *ctx.Context) {
 	exp.CheckChains(context)
-	exp.Statistic()
 	exp.updateCoinPrice()
+	//exp.Statistic()
 
 	for {
 		exp.Start1(context)
@@ -165,6 +176,7 @@ func (exp *Service) Start1(context *ctx.Context) {
 		select {
 		case <-t.C:
 			exp.CheckChains(context)
+			exp.UpdateCoinPrice()
 			exp.Statistic()
 			exp.CheckLog()
 		case <-context.Context.Done():
