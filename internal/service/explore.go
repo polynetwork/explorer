@@ -418,7 +418,7 @@ func (exp *Service) outputCrossTransfer(chainid uint32, user string, tt uint32, 
 	crossTransfer.ToChainId = transfer.ToChain
 	crossTransfer.ToChain = exp.ChainId2Name(crossTransfer.ToChainId)
 	crossTransfer.ToAddress = transfer.ToUser
-	token := exp.GetToken(transfer.Asset)
+	token := exp.GetToken(chainid, transfer.Asset)
 	if token != nil {
 		crossTransfer.TokenHash = token.Hash
 		crossTransfer.TokenName = token.Name
@@ -456,7 +456,7 @@ func (exp *Service) outputFChainTx(fChainTx *model.FChainTx) *model.FChainTxResp
 			ToChainName: exp.ChainId2Name(fChainTx.Transfer.ToChain),
 			ToUser:      fChainTx.Transfer.ToUser,
 		}
-		token := exp.GetToken(fChainTx.Transfer.Asset)
+		token := exp.GetToken(fChainTx.Chain, fChainTx.Transfer.Asset)
 		fChainTxResp.Transfer.TokenHash = fChainTx.Transfer.Asset
 		if token != nil {
 			fChainTxResp.Transfer.TokenHash = token.Hash
@@ -467,7 +467,7 @@ func (exp *Service) outputFChainTx(fChainTx *model.FChainTx) *model.FChainTxResp
 			fChainTxResp.Transfer.TokenName = fChainTx.Transfer.Asset
 			fChainTxResp.Transfer.Amount = fChainTx.Transfer.Amount.String()
 		}
-		totoken := exp.GetToken(fChainTx.Transfer.ToAsset)
+		totoken := exp.GetToken(fChainTx.TChain, fChainTx.Transfer.ToAsset)
 		fChainTxResp.Transfer.ToTokenHash = fChainTx.Transfer.ToAsset
 		if totoken != nil {
 			fChainTxResp.Transfer.ToTokenHash = totoken.Hash
@@ -524,7 +524,7 @@ func (exp *Service) outputTChainTx(tChainTx *model.TChainTx) *model.TChainTxResp
 			To:           tChainTx.Transfer.To,
 			Amount:       tChainTx.Transfer.Amount.String(),
 		}
-		token := exp.GetToken(tChainTx.Transfer.Asset)
+		token := exp.GetToken(tChainTx.Chain, tChainTx.Transfer.Asset)
 		tChainTxResp.Transfer.TokenHash = tChainTx.Transfer.Asset
 		if token != nil {
 			tChainTxResp.Transfer.TokenHash = token.Hash
@@ -567,7 +567,7 @@ func (exp *Service) outputTokenTxList(tokenHash string, tokenTxs []*model.TokenT
 	var tokenTxListResp model.TokenTxListResp
 	tokenTxListResp.Total = tokenTxTotal
 	tokenTxListResp.TokenTxList = make([]*model.TokenTxResp, 0)
-	token := exp.GetToken(tokenHash)
+	token := exp.GetToken1(tokenHash)
 	for _, tokenTx := range tokenTxs {
 		amount := tokenTx.Amount.String()
 		if token != nil {
@@ -601,7 +601,7 @@ func (exp *Service) outputAddressTxList(addressTxs []*model.AddressTx, addressTx
 			Direct: addressTx.Direct,
 			TokenHash: addressTx.Asset,
 		}
-		token := exp.GetToken(addressTx.Asset)
+		token := exp.GetToken1(addressTx.Asset)
 		if token != nil {
 			txresp.Amount = exp.FormatAmount(token.Precision, addressTx.Amount)
 			txresp.TokenName = token.Name

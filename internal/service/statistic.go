@@ -328,7 +328,7 @@ func (srv *Service) makeTransferStatistic(tokenStatistic *model.TransferStatisti
 	}
 	tokenStatistic.LatestOut = txOutInfo.TT
 	tokenStatistic.LatestIn = txInInfo.TT
-	token := srv.GetToken(tokenStatistic.Hash)
+	token := srv.GetToken1(tokenStatistic.Hash)
 	if token == nil {
 		log.Errorf("makeTransferStatistic err, the token: %s is missing", tokenStatistic.Hash)
 		return

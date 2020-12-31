@@ -313,7 +313,20 @@ func (exp *Service) AssetInfo(tokenHash string) (string, string) {
 	return "unknow token", "unknow token"
 }
 
-func (exp *Service) GetToken(tokenHash string) (*model.ChainToken) {
+func (exp *Service) GetToken(chainId uint32, tokenHash string) (*model.ChainToken) {
+	chainInfo := exp.GetChain(chainId)
+	if chainInfo == nil {
+		return nil
+	}
+	for _, token := range chainInfo.Tokens {
+		if token.Hash == tokenHash {
+			return token
+		}
+	}
+	return nil
+}
+
+func (exp *Service) GetToken1(tokenHash string) (*model.ChainToken) {
 	for _, chainInfo := range exp.chain {
 		for _, token := range chainInfo.Tokens {
 			if token.Hash == tokenHash {
