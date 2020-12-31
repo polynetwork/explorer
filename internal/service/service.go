@@ -368,6 +368,9 @@ func (exp *Service) Hash2Address(chainId uint32, value string) string {
 		value = common.HexStringReverse(value)
 		addr, _ := ontcommon.AddressFromHexString(value)
 		return addr.ToBase58()
+	} else if chainId == common.CHAIN_BSC {
+		addr := ethcommon.HexToAddress(value)
+		return strings.ToLower(addr.String()[2:])
 	}
 	return value
 }
@@ -401,6 +404,10 @@ func (exp *Service) FormatFee(chain uint32, fee uint64) string {
 		precision_new := decimal.New(int64(100000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
 		return fee_new.Div(precision_new).String() + " SWTH"
+	} else if chain == common.CHAIN_BSC {
+		precision_new := decimal.New(int64(1000000000000000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		return fee_new.Div(precision_new).String() + " BNB"
 	} else {
 		precision_new := decimal.New(int64(1), 0)
 		fee_new := decimal.New(int64(fee), 0)
