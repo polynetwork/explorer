@@ -264,7 +264,18 @@ INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("1f9840a85d5af5bf1
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("89029ef258b82c5c3741fe25db91375e9301dc71", "1f9840a85d5af5bf1d1762f925bdaddc4201f984");
 
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "yearn.finance", "0bc529c00c6401aef6d220be8c6ea1667f6ad93e", "YFI", "ERC20", "1000000000000000000","yearn.finance");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "yearn.finance", "8c8dc28d10c22a66357240b920b569e32447d7af", "pYFI", "OEP4", "1000000000000000000","pYFI");
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Unifi Protocol DAO", "441761326490cacf7af299725b6292597ee822c2", "UNFI", "ERC20", "1000000000000000000","UNFI");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Unifi Protocol DAO", "6f560d392a8701d0931a7d61f8ac4bdcc050e9ab", "pUNFI", "OEP4", "1000000000000000000","pUNFI");
+
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0bc529c00c6401aef6d220be8c6ea1667f6ad93e", "0bc529c00c6401aef6d220be8c6ea1667f6ad93e");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("8c8dc28d10c22a66357240b920b569e32447d7af", "0bc529c00c6401aef6d220be8c6ea1667f6ad93e");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("441761326490cacf7af299725b6292597ee822c2", "441761326490cacf7af299725b6292597ee822c2");
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("6f560d392a8701d0931a7d61f8ac4bdcc050e9ab", "441761326490cacf7af299725b6292597ee822c2");
 
 DROP TABLE IF EXISTS `poly_validators`;
 CREATE TABLE `poly_validators` (

@@ -58,7 +58,8 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Ontology Gas", "0200000000000000000000000000000000000000", "ong", "OEP4", "1000000000","ong");
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(5, "Ontology Gas", "6f6e6778", "ong", "Cosmos", "1000000000","ong");
 
-
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(79, "BNB", "0000000000000000000000000000000000000000", "BNB", "BNB", "1","BNB");
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "EBNB", "49fdf74986fbfaa96ae3cfbdf4e3dfda59e8bcec", "BNB", "BNB", "1","BNB");
 
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Ontology", "530aae4c0859894023906e28467f2a7f111b6ff3", "ONT Token (ONTX)", "ERC20", "1","ont");
