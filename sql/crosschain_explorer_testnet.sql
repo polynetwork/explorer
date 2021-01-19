@@ -33,7 +33,7 @@ INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("p
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("btc",1,1,0,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("eth",2,2,8631110,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("ontology",3,3,13653290,0,0);
-INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("neo",5,4,4639655,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("neo",5,5,5487332,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("cosmos",5,5,0,0,0);
 
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("heco",7,7,1378216,0,0);
@@ -41,7 +41,7 @@ INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("h
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(0, "0300000000000000000000000000000000000000");
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(2, "726532586c50ec9f4080b71f906a3d9779bbd64f");
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(3, "0900000000000000000000000000000000000000");
-INSERT INTO `chain_contract`(`id`,`contract`) VALUES(4, "80cd0c6fb005da87b78c54dd03c65ef1447195fa");
+INSERT INTO `chain_contract`(`id`,`contract`) VALUES(5, "e1695b1314a1331e3935481620417ed835669407");
 
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(1, "Bitcoin", "0000000000000000000000000000000000000011", "btc", "BTC", "100000000","btc");
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(2, "Bitcoin", "92705a16815a3d1aec3ce9cc273c5aa302961fcc", "BTC Token (BTCX)", "ERC20", "100000000","btc");
