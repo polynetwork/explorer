@@ -31,6 +31,7 @@ const (
 	CHAIN_NEO    = 4
 	CHAIN_COSMOS = 5
 	CHAIN_BSC = 79
+	CHAIN_HECO = 7
 )
 
 const (
