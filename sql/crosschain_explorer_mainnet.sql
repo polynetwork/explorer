@@ -42,6 +42,7 @@ INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("e
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("ontology",3,3,9300490,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("neo",4,4,6023777,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("switcheo",5,5,202650,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("bsc",6,6,4123673,0,0);
 
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(0, "0300000000000000000000000000000000000000");
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(2, "838bf9e95cb12dd76a54c9f9d2e3082eaf928270");
@@ -185,6 +186,7 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Uniswap", "89029ef258b82c5c3741fe25db91375e9301dc71", "pUNI", "OEP4", "1000000000000000000","Uniswap");
 
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(6, "Ethereum", "b9478391eec218defa96f7b9a7938cf44e7a2fd5", "pETH", "erc20", "1000000000000000000","Ethereum");
 
 
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0200000000000000000000000000000000000000", "0200000000000000000000000000000000000000");
@@ -276,6 +278,11 @@ INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("8c8dc28d10c22a663
 
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("441761326490cacf7af299725b6292597ee822c2", "441761326490cacf7af299725b6292597ee822c2");
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("6f560d392a8701d0931a7d61f8ac4bdcc050e9ab", "441761326490cacf7af299725b6292597ee822c2");
+
+
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("b9478391eec218defa96f7b9a7938cf44e7a2fd5", "0000000000000000000000000000000000000000");
+
 
 DROP TABLE IF EXISTS `poly_validators`;
 CREATE TABLE `poly_validators` (

@@ -139,7 +139,7 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 							//amount, _ := strconv.ParseUint(common.HexStringReverse(statesnew[6].(string)), 16, 64)
 							amount, _ := new(big.Int).SetString(common.HexStringReverse(statesnew[6].(string)), 16)
 							fctransfer.Amount = amount
-							toChain, _ := strconv.ParseUint(statesnew[3].(string), 16, 32)
+							toChain, _ := strconv.ParseUint(common.HexStringReverse(statesnew[3].(string)), 16, 32)
 							fctransfer.ToChain = uint32(toChain)
 							if !srv.IsMonitorChain(fctransfer.ToChain) {
 								continue

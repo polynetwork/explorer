@@ -26,7 +26,6 @@ import (
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
 	"math/big"
-	"strconv"
 	"time"
 )
 
@@ -150,13 +149,18 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 									amount, _ = new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[6].Value), 16)
 								}
 								fctransfer.Amount = amount
-								tchainId, _ := strconv.ParseUint(notifynew.State.Value[3].Value, 10, 32)
-								fctransfer.ToChain = uint32(tchainId)
+								tChainId := big.NewInt(0)
+								if notifynew.State.Value[3].Type == "Integer" {
+									tChainId, _ = new(big.Int).SetString(notifynew.State.Value[3].Value, 10)
+								} else {
+									tChainId, _ = new(big.Int).SetString(common.HexStringReverse(notifynew.State.Value[3].Value), 16)
+								}
+								fctransfer.ToChain = uint32(tChainId.Uint64())
 								if len(notifynew.State.Value[5].Value) != 40 {
 									continue
 								}
-								fctransfer.ToUser = srv.Hash2Address(uint32(tchainId), notifynew.State.Value[5].Value)
-								if uint32(tchainId) == srv.c.Bitcoin.ChainId {
+								fctransfer.ToUser = srv.Hash2Address(uint32(tChainId.Uint64()), notifynew.State.Value[5].Value)
+								if uint32(tChainId.Uint64()) == srv.c.Bitcoin.ChainId {
 									fctransfer.ToAsset = common.BTC_TOKEN_HASH
 								} else {
 									fctransfer.ToAsset = notifynew.State.Value[4].Value
@@ -172,8 +176,13 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 						fctx.TT = uint32(tt)
 						fctx.Height = chainInfo.Height
 						fctx.User = fctransfer.From
-						toChainId, _ := strconv.ParseInt(notify.State.Value[3].Value, 10, 64)
-						fctx.TChain = uint32(toChainId)
+						toChainId := big.NewInt(0)
+						if notify.State.Value[3].Type == "Integer" {
+							toChainId, _ = new(big.Int).SetString(notify.State.Value[3].Value, 10)
+						} else {
+							toChainId, _ = new(big.Int).SetString(common.HexStringReverse(notify.State.Value[3].Value), 16)
+						}
+						fctx.TChain = uint32(toChainId.Uint64())
 						fctx.Contract = notify.State.Value[2].Value
 						fctx.Key = notify.State.Value[4].Value
 						fctx.Param = notify.State.Value[5].Value
@@ -223,8 +232,13 @@ func (srv *Service) saveNeoCrossTxsByHeight(sqlTx *sql.Tx, chainInfo *model.Chai
 						tctx.Fee = uint64(common.String2Float64(exeitem.GasConsumed))
 						tctx.TT = uint32(tt)
 						tctx.Height = chainInfo.Height
-						fchainId, _ := strconv.ParseUint(notify.State.Value[1].Value, 10, 32)
-						tctx.FChain = uint32(fchainId)
+						fChainId := big.NewInt(0)
+						if notify.State.Value[1].Type == "Integer" {
+							fChainId, _ = new(big.Int).SetString(notify.State.Value[1].Value, 10)
+						} else {
+							fChainId, _ = new(big.Int).SetString(common.HexStringReverse(notify.State.Value[1].Value), 16)
+						}
+						tctx.FChain = uint32(fChainId.Uint64())
 						tctx.Contract = common.HexStringReverse(notify.State.Value[2].Value)
 						tctx.RTxHash = common.HexStringReverse(notify.State.Value[3].Value)
 						tctx.Transfer = tctransfer
