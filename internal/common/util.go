@@ -29,9 +29,9 @@ const (
 	CHAIN_ETH    = 2
 	CHAIN_ONT    =  3
 	//CHAIN_NEO    = 5
-	CHAIN_NEO    = 4
-	CHAIN_COSMOS = 5
-	CHAIN_BSC = 6
+	CHAIN_NEO    = 5
+	CHAIN_COSMOS = 15
+	CHAIN_BSC = 79
 	CHAIN_HECO = 7
 )
 
