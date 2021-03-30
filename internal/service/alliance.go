@@ -143,7 +143,7 @@ func (srv *Service) saveAllianceCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Ch
 						mctx.Key = states[3].(string)
 					}
 				} else {
-					if fchainid == srv.c.Ethereum.ChainId || fchainid == srv.c.Cosmos.ChainId || fchainid == common.CHAIN_BSC || fchainid == common.CHAIN_HECO {
+					if fchainid == srv.c.Ethereum.ChainId || fchainid == srv.c.Cosmos.ChainId || fchainid == common.CHAIN_BSC || fchainid == common.CHAIN_HECO || fchainid == common.CHAIN_O3 {
 						mctx.FTxHash = states[3].(string)
 					} else {
 						mctx.FTxHash = common.HexStringReverse(states[3].(string))
