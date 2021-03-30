@@ -43,6 +43,7 @@ INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("o
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("neo",4,4,6023777,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("switcheo",5,5,202650,0,0);
 INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("bsc",6,6,4123673,0,0);
+INSERT INTO `chain_info`(`xname`,`id`,`xtype`,`height`,`txin`,`txout`) VALUES("heco",7,7,1810758,0,0);
 
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(0, "0300000000000000000000000000000000000000");
 INSERT INTO `chain_contract`(`id`,`contract`) VALUES(2, "838bf9e95cb12dd76a54c9f9d2e3082eaf928270");
@@ -186,9 +187,6 @@ INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,
 INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(3, "Uniswap", "89029ef258b82c5c3741fe25db91375e9301dc71", "pUNI", "OEP4", "1000000000000000000","Uniswap");
 
 
-INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(6, "Ethereum", "b9478391eec218defa96f7b9a7938cf44e7a2fd5", "pETH", "erc20", "1000000000000000000","Ethereum");
-
-
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0200000000000000000000000000000000000000", "0200000000000000000000000000000000000000");
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0100000000000000000000000000000000000000", "0100000000000000000000000000000000000000");
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0000000000000000000000000000000000000000", "0000000000000000000000000000000000000000");
@@ -280,8 +278,58 @@ INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("441761326490cacf7
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("6f560d392a8701d0931a7d61f8ac4bdcc050e9ab", "441761326490cacf7af299725b6292597ee822c2");
 
 
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(6, "Neo", "b119b3b8e5e6eeffbe754b20ee5b8a42809931fb", "pNEO", "ERC20", "1000000000","pNEO");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("b119b3b8e5e6eeffbe754b20ee5b8a42809931fb", "f46719e2d16bf50cddcef9d4bbfece901f73cbb6");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(6, "Ethereum", "b9478391eec218defa96f7b9a7938cf44e7a2fd5", "pETH", "ERC20", "1000000000000000000","pETH");
 
 INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("b9478391eec218defa96f7b9a7938cf44e7a2fd5", "0000000000000000000000000000000000000000");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(6, "Tether", "48389753b64c9e581975457332e60dc49325a653", "pUSDT", "ERC20", "1000000","pUSDT");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("48389753b64c9e581975457332e60dc49325a653", "dac17f958d2ee523a2206206994597c13d831ec7");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(6, "Dai", "8f339abc2a2a8a4d0364c7e35f892c40fbfb4bc0", "pDAI", "ERC20", "1000000000000000000","pDAI");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("8f339abc2a2a8a4d0364c7e35f892c40fbfb4bc0", "6b175474e89094c44da98b954eedeac495271d0f");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(6, "USD Coin", "0dbbf67fb78651d3f6407a421040f1503b486693", "pUSDC", "ERC20", "1000000","pUSDC");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("0dbbf67fb78651d3f6407a421040f1503b486693", "a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(6, "sUSD", "89bcd91f7922126c568436841b16d036528e9714", "psUSD", "ERC20", "1000000000000000000","psUSD");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("89bcd91f7922126c568436841b16d036528e9714", "57ab1ec28d129707052df4df418d58a2d46d5f51");
+
+
+
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(7, "Neo", "6514a5ebff7944099591ae3e8a5c0979c83b2571", "pNEO", "ERC20", "1000000000","pNEO");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("6514a5ebff7944099591ae3e8a5c0979c83b2571", "f46719e2d16bf50cddcef9d4bbfece901f73cbb6");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(7, "Ethereum", "8c0859c191d8f100e4a3c0d8c0066c36a0c1f894", "pETH", "ERC20", "1000000000000000000","pETH");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("8c0859c191d8f100e4a3c0d8c0066c36a0c1f894", "0000000000000000000000000000000000000000");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(7, "Tether", "a7d1aac3c9bf61559c25f94132a9f801e8b5f97e", "pUSDT", "ERC20", "1000000","pUSDT");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("a7d1aac3c9bf61559c25f94132a9f801e8b5f97e", "dac17f958d2ee523a2206206994597c13d831ec7");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(7, "Dai", "643f3914fb8ede03d932c79732746a8c11ae470a", "pDAI", "ERC20", "1000000000000000000","pDAI");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("643f3914fb8ede03d932c79732746a8c11ae470a", "6b175474e89094c44da98b954eedeac495271d0f");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(7, "USD Coin", "e85631b817923487ba40263144eeff532cff10a2", "pUSDC", "ERC20", "1000000","pUSDC");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("e85631b817923487ba40263144eeff532cff10a2", "a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
+
+INSERT INTO `chain_token`(`id`, `xtoken`, `hash`, `xname`, `xtype`,`xprecision`,`xdesc`) VALUES(7, "sUSD", "002e47d940dfd177dc0fe78321e17ef84676985d", "psUSD", "ERC20", "1000000000000000000","psUSD");
+
+INSERT INTO `chain_token_bind`(`hash_src`,`hash_dest`) VALUES("002e47d940dfd177dc0fe78321e17ef84676985d", "57ab1ec28d129707052df4df418d58a2d46d5f51");
+
+
 
 
 DROP TABLE IF EXISTS `poly_validators`;

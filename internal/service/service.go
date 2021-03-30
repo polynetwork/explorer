@@ -23,6 +23,7 @@ import (
 	cosmos_types "github.com/cosmos/cosmos-sdk/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/joeqian10/neo-gogogo/helper"
+	ontcommon "github.com/ontio/ontology/common"
 	"github.com/polynetwork/explorer/internal/common"
 	"github.com/polynetwork/explorer/internal/conf"
 	"github.com/polynetwork/explorer/internal/ctx"
@@ -31,7 +32,6 @@ import (
 	"github.com/polynetwork/explorer/internal/model"
 	restclient "github.com/polynetwork/explorer/internal/server/restful/client"
 	"github.com/polynetwork/explorer/internal/server/rpc/client"
-	ontcommon "github.com/ontio/ontology/common"
 	"github.com/shopspring/decimal"
 	"math/big"
 	"runtime/debug"
@@ -387,6 +387,9 @@ func (exp *Service) Hash2Address(chainId uint32, value string) string {
 	} else if chainId == common.CHAIN_HECO {
 		addr := ethcommon.HexToAddress(value)
 		return strings.ToLower(addr.String()[2:])
+	} else if chainId == common.CHAIN_O3 {
+		addr := ethcommon.HexToAddress(value)
+		return strings.ToLower(addr.String()[2:])
 	}
 	return value
 }
@@ -424,7 +427,11 @@ func (exp *Service) FormatFee(chain uint32, fee uint64) string {
 		precision_new := decimal.New(int64(1000000000000000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
 		return fee_new.Div(precision_new).String() + " BNB"
-	} else if chain == common.CHAIN_HECO {
+	} else if chain == common.CHAIN_O3 {
+		precision_new := decimal.New(int64(1000000000000000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		return fee_new.Div(precision_new).String() + " O3"
+	}  else if chain == common.CHAIN_HECO {
 		precision_new := decimal.New(int64(1000000000000000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
 		return fee_new.Div(precision_new).String() + " HT"
