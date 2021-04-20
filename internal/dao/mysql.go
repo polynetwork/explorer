@@ -27,11 +27,11 @@ import (
 )
 
 const (
-	_insertTChainTx                 = "insert into tchain_tx(chain_id, txhash, state, tt, fee, height, fchain, contract, rtxhash) values (?,?,?,?,?,?,?,?,?)"
-	_insertTChainTransfer          = "insert into tchain_transfer(txhash, chain_id, tt, asset, xfrom, xto, amount) values(?,?,?,?,?,?,?)"
-	_insertFChainTx                 = "insert into fchain_tx(chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam) values (?,?,?,?,?,?,?,?,?,?,?)"
-	_insertFChainTransfer          = "insert into fchain_transfer(txhash, chain_id, tt, asset, xfrom, xto, amount, tochainid, toasset, touser) values (?,?,?,?,?,?,?,?,?,?)"
-	_insertMChainTx                 = "insert into mchain_tx(chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey) values (?,?,?,?,?,?,?,?,?,?)"
+	_insertTChainTx                 = "insert into tchain_tx(chain_id, txhash, state, tt, fee, height, fchain, contract, rtxhash) values (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `height` = VALUES(`height`)"
+	_insertTChainTransfer          = "insert into tchain_transfer(txhash, chain_id, tt, asset, xfrom, xto, amount) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `tt` = VALUES(`tt`)"
+	_insertFChainTx                 = "insert into fchain_tx(chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam) values (?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `height` = VALUES(`height`)"
+	_insertFChainTransfer          = "insert into fchain_transfer(txhash, chain_id, tt, asset, xfrom, xto, amount, tochainid, toasset, touser) values (?,?,?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE `tt` = VALUES(`tt`)"
+	_insertMChainTx                 = "insert into mchain_tx(chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey) values (?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `tt` = VALUES(`tt`)"
 	_selectMChainTxCount            = "select count(*) from mchain_tx"
 	//_selectMChainTxByLimit          = "select A.chain_id, A.txhash, case when B.txhash is null OR C.txhash is null THEN 0 ELSE 1 END as state, A.tt, A.fee, A.height, A.fchain, A.tchain from mchain_tx A left join tchain_tx B on A.txhash = B.rtxhash left join fchain_tx C on A.ftxhash = C.txhash order by A.height desc limit ?,?;"
 	_selectMChainTxByLimit          = "select C.chain_id, C.txhash, case when D.txhash is null THEN 0 ELSE 1 END as state, C.tt, C.fee, C.height, C.fchain, C.tchain from ((select B.chain_id, B.txhash, B.tt, B.fee, B.height, B.fchain, B.tchain from (select txhash, chain_Id, tt, height, tchain from fchain_tx order by tt desc limit ?, ?) A LEFT JOIN mchain_tx B ON B.ftxhash = A.txhash where B.txhash is not null) union all (select A.chain_id, case when A.chain_id = ? then A.xkey else A.txhash end as txhash, A.tt, A.fee, A.height, A.chain_id as fchain, A.tchain from (select txhash, xkey, chain_Id, tt, fee, height, tchain from fchain_tx order by tt desc limit ?, ?) A LEFT JOIN mchain_tx B ON B.ftxhash = A.txhash where B.txhash is null)) C LEFT JOIN tchain_tx D on C.txhash = D.rtxhash order by C.tt desc"
