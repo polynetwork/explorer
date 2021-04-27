@@ -177,7 +177,10 @@ func (srv *Service) saveEthCrossTxsByHeight(tx *sql.Tx, ctx *ctx.Context, chainI
 				if !srv.IsMonitorChain(fctx.TChain) {
 					continue
 				}
-				if fctx.Transfer != nil && !srv.IsMonitorChain(fctx.Transfer.ToChain) {
+				if fctx.Transfer == nil {
+					continue
+				}
+				if !srv.IsMonitorChain(fctx.Transfer.ToChain) {
 					continue
 				}
 				err = srv.dao.TxInsertFChainTxAndCache(tx, fctx)
@@ -215,6 +218,9 @@ func (srv *Service) saveEthCrossTxsByHeight(tx *sql.Tx, ctx *ctx.Context, chainI
 					}
 				}
 				if !srv.IsMonitorChain(tctx.FChain) {
+					continue
+				}
+				if tctx.Transfer == nil {
 					continue
 				}
 				err = srv.dao.TxInsertTChainTxAndCache(tx, tctx)
