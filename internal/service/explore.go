@@ -173,7 +173,7 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 			return myerror.DB_CONNECTTION_FAILED, ""
 		} else if mChainTx != nil {
 			crosstx.Mchaintx_valid = true
-			if fChainTx, err = exp.dao.FChainTx(mChainTx.FTxHash, common.CHAIN_POLY); err != nil {
+			if fChainTx, err = exp.dao.FChainTx1(mChainTx.FTxHash, mChainTx.FChain); err != nil {
 				log.Errorf("GetCrossTx: get fChainTx %s", err)
 				return myerror.DB_CONNECTTION_FAILED, ""
 			} else if fChainTx != nil {
@@ -199,7 +199,7 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 				return myerror.DB_CONNECTTION_FAILED, ""
 			} else if mChainTx != nil {
 				crosstx.Mchaintx_valid = true
-				if fChainTx, err = exp.dao.FChainTx(mChainTx.FTxHash, common.CHAIN_POLY); err != nil {
+				if fChainTx, err = exp.dao.FChainTx1(mChainTx.FTxHash, mChainTx.FChain); err != nil {
 					log.Errorf("GetCrossTx: get fChainTx %s", err)
 					return myerror.DB_CONNECTTION_FAILED, ""
 				} else if fChainTx != nil {

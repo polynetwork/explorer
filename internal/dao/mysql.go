@@ -38,6 +38,7 @@ const (
 	_selectMChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey from mchain_tx where txhash = ?"
 	_selectMChainTxByFHash          = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey from mchain_tx where ftxhash = ?"
 	_selectFChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam from fchain_tx where case when chain_id = ? then xkey = ? else txhash = ? end"
+	_selectFChainTxByHash1           = "select chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam from fchain_tx where txhash = ? and chain_id = ?"
 	_selectFChainTxByTime           = "select chain_id, unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from fchain_tx where tt > ? and tt < ? group by chain_id, days order by chain_id, days desc"
 	_selectFChainTransferByHash    = "select txhash, asset, xfrom, xto, amount, tochainid, toasset, touser from fchain_transfer where txhash = ?"
 	_selectTChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, fchain, contract,rtxhash from tchain_tx where txhash = ?"
@@ -255,6 +256,32 @@ func (d *Dao) SelectFChainTxByHash(hash string, chain uint32) (res *model.FChain
 	res.Transfer = new(model.FChainTransfer)
 	{
 		row := d.db.QueryRow(_selectFChainTxByHash, chain, hash, hash)
+		if err = row.Scan(&res.Chain, &res.TxHash, &res.State, &res.TT, &res.Fee, &res.Height, &res.User, &res.TChain, &res.Contract, &res.Key, &res.Param); err != nil {
+			if err == sql.ErrNoRows {
+				err = nil
+			}
+			res = nil
+			return
+		}
+	}
+	{
+		row := d.db.QueryRow(_selectFChainTransferByHash, res.TxHash)
+		var amount string
+		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount, &res.Transfer.ToChain, &res.Transfer.ToAsset, &res.Transfer.ToUser); err != nil {
+			if err == sql.ErrNoRows {
+				err = nil
+			}
+		}
+		res.Transfer.Amount, _ = new(big.Int).SetString(amount, 10)
+	}
+	return
+}
+
+func (d *Dao) SelectFChainTxByHash1(hash string, chain uint32) (res *model.FChainTx, err error) {
+	res = new(model.FChainTx)
+	res.Transfer = new(model.FChainTransfer)
+	{
+		row := d.db.QueryRow(_selectFChainTxByHash1, hash, chain)
 		if err = row.Scan(&res.Chain, &res.TxHash, &res.State, &res.TT, &res.Fee, &res.Height, &res.User, &res.TChain, &res.Contract, &res.Key, &res.Param); err != nil {
 			if err == sql.ErrNoRows {
 				err = nil

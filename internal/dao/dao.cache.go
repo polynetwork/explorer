@@ -127,6 +127,27 @@ func (d *Dao) FChainTx(txHash string, chain uint32) (res *model.FChainTx, err er
 	return
 }
 
+func (d *Dao) FChainTx1(txHash string, chain uint32) (res *model.FChainTx, err error) {
+	addCache := true
+	res, err = d.CacheFChainTx(txHash)
+	if err != nil {
+		addCache = false
+		err = nil
+	}
+	if res != nil {
+		return
+	}
+	res, err = d.SelectFChainTxByHash1(txHash, chain)
+	if err != nil {
+		return
+	}
+	if res == nil || !addCache {
+		return
+	}
+	err = d.AddFChainTx(res)
+	return
+}
+
 func (d *Dao) InsertFChainTxAndCache(f *model.FChainTx) (err error) {
 	err = d.InsertFChainTx(f)
 	if err != nil {
