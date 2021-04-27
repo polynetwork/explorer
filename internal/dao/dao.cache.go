@@ -45,7 +45,7 @@ func (d *Dao) MChainTx(txHash string) (res *model.MChainTx, err error) {
 	return
 }
 
-func (d *Dao) MChainTxByFTx(fTxHash string) (res *model.MChainTx, err error) {
+func (d *Dao) MChainTxByFTx(fTxHash string, chain uint32) (res *model.MChainTx, err error) {
 	addCache := true
 	res, err = d.CacheMChainTxByFTx(fTxHash)
 	if err != nil {
@@ -55,7 +55,7 @@ func (d *Dao) MChainTxByFTx(fTxHash string) (res *model.MChainTx, err error) {
 	if res != nil {
 		return
 	}
-	res, err = d.SelectMChainTxByFHash(fTxHash)
+	res, err = d.SelectMChainTxByFHash(fTxHash, chain)
 	if err != nil {
 		return
 	}
@@ -106,7 +106,7 @@ func (d *Dao) TxInsertMChainTxAndCache(tx *sql.Tx, m *model.MChainTx) (err error
 	return
 }
 
-func (d *Dao) FChainTx(txHash string, chain uint32) (res *model.FChainTx, err error) {
+func (d *Dao) FChainTx(txHash string) (res *model.FChainTx, err error) {
 	addCache := true
 	res, err = d.CacheFChainTx(txHash)
 	if err != nil {
@@ -116,7 +116,7 @@ func (d *Dao) FChainTx(txHash string, chain uint32) (res *model.FChainTx, err er
 	if res != nil {
 		return
 	}
-	res, err = d.SelectFChainTxByHash(txHash, chain)
+	res, err = d.SelectFChainTxByHash(txHash)
 	if err != nil {
 		return
 	}

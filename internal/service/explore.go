@@ -148,12 +148,12 @@ func (exp *Service) GetCrossTx(hash string) (int64, string) {
 	tChainTx := new(model.TChainTx)
 	var err error
 	log.Infof("*********************GetCrossTx phase 1************************")
-	if fChainTx, err = exp.dao.FChainTx(hash, common.CHAIN_ETH); err != nil {
+	if fChainTx, err = exp.dao.FChainTx(hash); err != nil {
 		log.Errorf("GetCrossTx: get fChainTx %s", err)
 		return myerror.DB_CONNECTTION_FAILED, ""
 	} else if fChainTx != nil {
 		crosstx.Fchaintx_valid = true
-		if mChainTx, err = exp.dao.MChainTxByFTx(fChainTx.TxHash); err != nil {
+		if mChainTx, err = exp.dao.MChainTxByFTx(fChainTx.TxHash, fChainTx.Chain); err != nil {
 			log.Errorf("GetCrossTx: get mChainTx %s", err)
 			return myerror.DB_CONNECTTION_FAILED, ""
 		} else if mChainTx != nil {
