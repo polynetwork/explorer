@@ -34,6 +34,7 @@ const (
 	CHAIN_BSC = 6
 	CHAIN_HECO = 7
 	CHAIN_O3 = 10
+	CHAIN_OK = 12
 )
 
 const (
