@@ -56,6 +56,14 @@ func NewEthereumClient(c *conf.Config) (client *EthereumClient) {
 	}
 }
 
+func (ec *EthereumClient) NextClient() int {
+	ec.node ++
+	ec.node = ec.node % len(ec.urls)
+	ec.rpcClient, _ = rpc.Dial(ec.urls[ec.node])
+	ec.Client, _ = ethclient.Dial(ec.urls[ec.node])
+	return ec.node
+}
+
 // GetHeaderByNumber returns the given header
 func (ec *EthereumClient) GetHeaderByNumber(ctx *ctx.Context, number int64) (header *types.Header, err error) {
 	cur := ec.node
@@ -66,14 +74,10 @@ func (ec *EthereumClient) GetHeaderByNumber(ctx *ctx.Context, number int64) (hea
 	}
 	for err != nil {
 		log.Errorf("EthereumClient.GetHeaderByNumber err:%s, url: %s", err.Error(), ec.urls[ec.node])
-		ec.node ++
-		ec.node = ec.node % len(ec.urls)
-		if ec.node == cur {
+		next := ec.NextClient()
+		if next == cur {
 			return nil, fmt.Errorf("all node is not working!")
 		}
-		ec.rpcClient, _ = rpc.Dial(ec.urls[ec.node])
-		ec.Client, _ = ethclient.Dial(ec.urls[ec.node])
-
 		if number < 0 {
 			header, err = ec.Client.HeaderByNumber(ctx.Context, nil)
 		} else {
@@ -90,13 +94,10 @@ func (ec *EthereumClient) GetCurrentBlockHeight(ctx *ctx.Context) (height int64,
 	err := ec.rpcClient.CallContext(ctx.Context, &result, "eth_blockNumber")
 	for err != nil {
 		log.Errorf("EthereumClient.GetCurrentBlockHeight err:%s, url: %s", err.Error(), ec.urls[ec.node])
-		ec.node ++
-		ec.node = ec.node % len(ec.urls)
-		if ec.node == cur {
+		next := ec.NextClient()
+		if next == cur {
 			return 0, fmt.Errorf("all node is not working!")
 		}
-		ec.rpcClient, _ = rpc.Dial(ec.urls[ec.node])
-		ec.Client, _ = ethclient.Dial(ec.urls[ec.node])
 		err = ec.rpcClient.CallContext(ctx.Context, &result, "eth_blockNumber")
 	}
 	return (*big.Int)(&result).Int64(), err
@@ -107,13 +108,10 @@ func (ec *EthereumClient) GetTransactionByHash(ctx *ctx.Context, hash common.Has
 	tx, _, err := ec.Client.TransactionByHash(ctx.Context, hash)
 	for err != nil {
 		log.Errorf("EthereumClient.GetTransactionByHash err:%s, url: %s", err.Error(), ec.urls[ec.node])
-		ec.node ++
-		ec.node = ec.node % len(ec.urls)
-		if ec.node == cur {
+		next := ec.NextClient()
+		if next == cur {
 			return nil, fmt.Errorf("all node is not working!")
 		}
-		ec.rpcClient, _ = rpc.Dial(ec.urls[ec.node])
-		ec.Client, _ = ethclient.Dial(ec.urls[ec.node])
 		tx, _, err = ec.Client.TransactionByHash(ctx.Context, hash)
 	}
 	return tx, err
@@ -124,13 +122,10 @@ func (ec *EthereumClient) GetTransactionReceipt(ctx *ctx.Context, hash common.Ha
 	receipt, err := ec.Client.TransactionReceipt(ctx.Context, hash)
 	for err != nil {
 		log.Errorf("EthereumClient.GetTransactionReceipt err:%s, url: %s", err.Error(), ec.urls[ec.node])
-		ec.node ++
-		ec.node = ec.node % len(ec.urls)
-		if ec.node == cur {
+		next := ec.NextClient()
+		if next == cur {
 			return nil, fmt.Errorf("all node is not working!")
 		}
-		ec.rpcClient, _ = rpc.Dial(ec.urls[ec.node])
-		ec.Client, _ = ethclient.Dial(ec.urls[ec.node])
 		receipt, err = ec.Client.TransactionReceipt(ctx.Context, hash)
 	}
 	return receipt, nil

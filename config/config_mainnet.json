@@ -23,18 +23,18 @@
     "master": 1,
     "http_cert_path": "",
     "http_key_path": "http_key_path",
-    "asset_statistic_time_slot": 10,
+    "asset_statistic_time_slot": 720,
     "transfer_statistic_time_slot": 10,
     "loglevel": 1
   },
   "coinmarketcap": {
     "url": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/",
-    "appkey": "8efe5156-8b37-4c77-8e1d-a140c97bf466"
+    "appkey": "8c175886-3aec-4276-8961-1f0ce06ab69e"
   },
   "neo": {
     "name": "neo",
     "chainId": 4,
-    "rawurl": ["http://seed10.ngd.network:11332","http://seed9.ngd.network:11332"],
+    "rawurl": ["http://seed8.ngd.network:10332","http://seed9.ngd.network:10332"],
     "block_duration": 1
   },
   "ontology": {
@@ -48,7 +48,7 @@
     "chainId": 2,
     "rawurl": ["http://onto-eth.ont.io:10331"],
     "block_duration": 1,
-    "proxy": "a4a0919ba5a2a89cb2eb1cb4018a16841b2e943f",
+    "proxy": "250e76987d838a75310c34bf422ea9f1ac4cc906",
     "btcx": "92705a16815a3d1aec3ce9cc273c5aa302961fcc"
   },
   "alliance": {

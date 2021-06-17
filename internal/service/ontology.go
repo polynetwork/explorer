@@ -24,6 +24,7 @@ import (
 	"github.com/polynetwork/explorer/internal/ctx"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 	"strconv"
 	"time"
 )
@@ -112,6 +113,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 				case _ont_crosschainlock:
 					log.Infof("from chain: %s, txhash: %s\n", chainInfo.Name, event.TxHash)
 					fctransfer := &model.FChainTransfer{}
+					if len(states) < 7 {
+						continue
+					}
 					for _, notifynew := range event.Notify {
 						statesnew := notifynew.States.([]interface{})
 						//log.Errorf("%v", statesnew)
@@ -122,16 +126,27 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 						contractMethod := srv.parseOntolofyMethod(method)
 						if contractMethod == _ont_lock {
 							//
+							if len(statesnew) < 7 {
+								continue
+							}
 							fctransfer.TxHash = event.TxHash
 							fctransfer.From = srv.Hash2Address(common.CHAIN_ONT, statesnew[2].(string))
 							fctransfer.To = srv.Hash2Address(common.CHAIN_ONT, states[5].(string))
 							fctransfer.Asset = common.HexStringReverse(statesnew[1].(string))
-							amount, _ := strconv.ParseUint(statesnew[6].(string), 16, 32)
-							fctransfer.Amount = uint64(amount)
-							toChain, _ := strconv.ParseUint(statesnew[3].(string), 16, 32)
+							if len(fctransfer.Asset) < 20 {
+								continue
+							}
+							//amount, _ := strconv.ParseUint(common.HexStringReverse(statesnew[6].(string)), 16, 64)
+							amount, _ := new(big.Int).SetString(common.HexStringReverse(statesnew[6].(string)), 16)
+							fctransfer.Amount = amount
+							toChain, _ := strconv.ParseUint(common.HexStringReverse(statesnew[3].(string)), 16, 32)
 							fctransfer.ToChain = uint32(toChain)
+							if !srv.IsMonitorChain(fctransfer.ToChain) {
+								continue
+							}
 							fctransfer.ToAsset = statesnew[4].(string)
 							fctransfer.ToUser = srv.Hash2Address(uint32(toChain), statesnew[5].(string))
+							break
 						}
 					}
 					fctx := &model.FChainTx{}
@@ -147,6 +162,12 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 					fctx.Key = states[4].(string)
 					fctx.Param = states[6].(string)
 					fctx.Transfer = fctransfer
+					if !srv.IsMonitorChain(fctx.TChain) {
+						continue
+					}
+					if fctx.Transfer != nil && !srv.IsMonitorChain(fctx.Transfer.ToChain) {
+						continue
+					}
 					err := srv.dao.TxInsertFChainTxAndCache(tx, fctx)
 					if err != nil {
 						log.Errorf("saveOntCrossTxsByHeight: InsertFChainTx %s", err)
@@ -156,6 +177,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 				case _ont_crosschainunlock:
 					log.Infof("to chain: %s, txhash: %s\n", chainInfo.Name, event.TxHash)
 					tctransfer := &model.TChainTransfer{}
+					if len(states) < 6 {
+						continue
+					}
 					for _, notifynew := range event.Notify {
 						statesnew := notifynew.States.([]interface{})
 						//log.Errorf("%v", statesnew)
@@ -166,12 +190,20 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 						contractMethod := srv.parseOntolofyMethod(method)
 						if contractMethod == _ont_unlock {
 							//
+							if len(statesnew) < 4 {
+								continue
+							}
 							tctransfer.TxHash = event.TxHash
 							tctransfer.From = srv.Hash2Address(common.CHAIN_ONT, states[5].(string))
 							tctransfer.To = srv.Hash2Address(common.CHAIN_ONT, statesnew[2].(string))
 							tctransfer.Asset = common.HexStringReverse(statesnew[1].(string))
-							amount, _ := strconv.ParseUint(statesnew[3].(string), 16, 32)
+							if len(tctransfer.Asset) < 20 {
+								continue
+							}
+							//amount, _ := strconv.ParseUint(common.HexStringReverse(statesnew[3].(string)), 16, 64)
+							amount, _ := new(big.Int).SetString(common.HexStringReverse(statesnew[3].(string)), 16)
 							tctransfer.Amount = amount
+							break
 						}
 					}
 					tctx := &model.TChainTx{}
@@ -185,6 +217,9 @@ func (srv *Service) saveOntCrossTxsByHeight(tx *sql.Tx, chainInfo *model.ChainIn
 					tctx.Contract = common.HexStringReverse(states[5].(string))
 					tctx.RTxHash = common.HexStringReverse(states[1].(string))
 					tctx.Transfer = tctransfer
+					if !srv.IsMonitorChain(tctx.FChain) {
+						continue
+					}
 					err = srv.dao.TxInsertTChainTxAndCache(tx, tctx)
 					if err != nil {
 						log.Errorf("saveOntCrossTxsByHeight: InsertTChainTx %s", err)

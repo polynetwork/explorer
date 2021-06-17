@@ -32,6 +32,7 @@ import (
 	"github.com/polynetwork/explorer/internal/ethtools/lockproxy"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 	"strings"
 	"time"
 )
@@ -156,6 +157,10 @@ func (srv *Service) saveEthCrossTxsByHeight(tx *sql.Tx, ctx *ctx.Context, chainI
 				fctx.Param = hex.EncodeToString(lockEvent.Value)
 				for _, v := range ethLockEvents {
 					if v.TxHash == lockEvent.TxHash {
+						toAssetHash := v.ToAssetHash
+						if v.ToChainId == common.CHAIN_ONT {
+							toAssetHash = common.HexStringReverse(toAssetHash)
+						}
 						fctransfer := &model.FChainTransfer{}
 						fctransfer.TxHash = lockEvent.Txid
 						fctransfer.From = srv.Hash2Address(common.CHAIN_ETH, v.FromAddress)
@@ -163,11 +168,20 @@ func (srv *Service) saveEthCrossTxsByHeight(tx *sql.Tx, ctx *ctx.Context, chainI
 						fctransfer.Asset = strings.ToLower(v.FromAssetHash)
 						fctransfer.Amount = v.Amount
 						fctransfer.ToChain = v.ToChainId
-						fctransfer.ToAsset = v.ToAssetHash
+						fctransfer.ToAsset = toAssetHash
 						fctransfer.ToUser = srv.Hash2Address(v.ToChainId, v.ToAddress)
 						fctx.Transfer = fctransfer
 						break
 					}
+				}
+				if !srv.IsMonitorChain(fctx.TChain) {
+					continue
+				}
+				if fctx.Transfer == nil {
+					continue
+				}
+				if !srv.IsMonitorChain(fctx.Transfer.ToChain) {
+					continue
 				}
 				err = srv.dao.TxInsertFChainTxAndCache(tx, fctx)
 				if err != nil {
@@ -202,6 +216,12 @@ func (srv *Service) saveEthCrossTxsByHeight(tx *sql.Tx, ctx *ctx.Context, chainI
 						tctx.Transfer = tctransfer
 						break
 					}
+				}
+				if !srv.IsMonitorChain(tctx.FChain) {
+					continue
+				}
+				if tctx.Transfer == nil {
+					continue
 				}
 				err = srv.dao.TxInsertTChainTxAndCache(tx, tctx)
 				if err != nil {
@@ -302,7 +322,7 @@ func (srv *Service) getProxyEventByBlockNumber(contractAddr string, height uint6
 			ToChainId:     uint32(evt.ToChainId),
 			ToAssetHash:   hex.EncodeToString(evt.ToAssetHash),
 			ToAddress:  hex.EncodeToString(evt.ToAddress),
-			Amount:    evt.Amount.Uint64(),
+			Amount:    evt.Amount,
 		})
 	}
 
@@ -320,7 +340,7 @@ func (srv *Service) getProxyEventByBlockNumber(contractAddr string, height uint6
 			TxHash:    evt.Raw.TxHash.String()[2:],
 			ToAssetHash:    evt.ToAssetHash.String()[2:],
 			ToAddress:   evt.ToAddress.String()[2:],
-			Amount:  evt.Amount.Uint64(),
+			Amount:  evt.Amount,
 		})
 	}
 	return ethLockEvents, ethUnlockEvents, nil
@@ -355,7 +375,7 @@ func (srv *Service) getBTCXEventByBlockNumber(contractAddr string, height uint64
 			ToChainId:     uint32(evt.ToChainId),
 			ToAssetHash:   hex.EncodeToString(evt.ToAssetHash),
 			ToAddress:  hex.EncodeToString(evt.ToAddress),
-			Amount:    evt.Amount,
+			Amount:    big.NewInt(int64(evt.Amount)),
 		})
 	}
 
@@ -373,7 +393,7 @@ func (srv *Service) getBTCXEventByBlockNumber(contractAddr string, height uint64
 			TxHash:    evt.Raw.TxHash.String()[2:],
 			ToAssetHash:    evt.ToAssetHash.String()[2:],
 			ToAddress:   evt.ToAddress.String()[2:],
-			Amount:  evt.Amount,
+			Amount:  big.NewInt(int64(evt.Amount)),
 		})
 	}
 	return ethLockEvents, ethUnlockEvents, nil
@@ -388,5 +408,5 @@ func (srv *Service) GetConsumeGas(ctx *ctx.Context, hash ethcommon.Hash) uint64 
 	if err != nil {
 		return 0
 	}
-	return tx.GasPrice().Uint64() * receipt.CumulativeGasUsed
+	return tx.GasPrice().Uint64() * receipt.GasUsed
 }

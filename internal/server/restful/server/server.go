@@ -57,6 +57,8 @@ const (
 	GET_TOKENTX_LIST  = "/api/v1/gettokentxlist"
 	GET_ADDRESSTX_LIST = "/api/v1/getaddresstxlist"
 	GET_LATEST_VALIDATOR = "/api/v1/getlatestvalidator"
+	GET_ASSET_STATISTIC  = "/api/v1/getassetstatistic"
+	GET_TRANSFER_STATISTIC  = "/api/v1/gettransferstatistic"
 )
 
 //init restful server
@@ -115,6 +117,8 @@ func (this *RestServer) registryMethod() {
 	getMethodMap := map[string]Action{
 		GET_CROSSTX:       {name: "getcrosstx", handler: GetCrossTx},
 		GET_LATEST_VALIDATOR:       {name: "getlatestvalidator", handler: GetLatestValidator},
+		GET_ASSET_STATISTIC:       {name: "getassetstatistic", handler: GetAssetStatistic},
+		GET_TRANSFER_STATISTIC:       {name: "gettransferstatistic", handler: GetTransferStatistic},
 	}
 	postMethodMap := map[string]Action{
 		GET_CROSSTX_LIST: {name: "getcrosstxlist", handler: GetCrossTxList},
@@ -140,6 +144,8 @@ func (this *RestServer) getParams(r *http.Request, url string, req map[string]in
 	switch url {
 	case GET_CROSSTX:
 		req["txhash"] = getParam(r, "txhash")
+	case GET_TRANSFER_STATISTIC:
+		req["chain"] = getParam(r, "chain")
 	default:
 	}
 	return req

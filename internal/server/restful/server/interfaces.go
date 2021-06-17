@@ -267,6 +267,34 @@ func GetLatestValidator(cmd map[string]interface{}) map[string]interface{} {
 	return resp
 }
 
+func GetAssetStatistic(cmd map[string]interface{}) map[string]interface{} {
+	code, result := srv.GetAssetStatistic()
+	if code != error.SUCCESS {
+		return ResponsePack(code)
+	}
+	resp := ResponsePack(error.SUCCESS)
+	resp["result"] = result
+	return resp
+}
+
+func GetTransferStatistic(cmd map[string]interface{}) map[string]interface{} {
+	chain, ok := cmd["chain"].(string)
+	if !ok {
+		return ResponsePack(error.REST_PARAM_INVALID)
+	}
+	chainId, err := strconv.Atoi(chain)
+	if err != nil {
+		return ResponsePack(error.REST_PARAM_INVALID)
+	}
+	code, result := srv.GetTransferStatistic(chainId)
+	if code != error.SUCCESS {
+		return ResponsePack(code)
+	}
+	resp := ResponsePack(error.SUCCESS)
+	resp["result"] = result
+	return resp
+}
+
 func StartMonitorService(context *ctx.Context) {
 	go srv.Start(context)
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/polynetwork/explorer/internal/ctx"
 	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -120,7 +121,7 @@ func (srv *Service) saveCosmosCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Chai
 			fctx.Chain = srv.c.Cosmos.ChainId
 			fctx.TxHash = lockEvent.TxHash
 			fctx.State = 1
-			fctx.Fee = 0
+			fctx.Fee = lockEvent.Fee
 			fctx.TT = uint32(tt)
 			fctx.Height = chainInfo.Height
 			fctx.User = lockEvent.User
@@ -143,6 +144,12 @@ func (srv *Service) saveCosmosCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Chai
 					break
 				}
 			}
+			if !srv.IsMonitorChain(fctx.TChain) {
+				continue
+			}
+			if fctx.Transfer != nil && !srv.IsMonitorChain(fctx.Transfer.ToChain) {
+				continue
+			}
 			err = srv.dao.TxInsertFChainTxAndCache(tx, fctx)
 			if err != nil {
 				log.Errorf("saveEthCrossTxsByHeight: InsertFChainTx %s", err)
@@ -159,7 +166,7 @@ func (srv *Service) saveCosmosCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Chai
 			tctx.Chain = srv.c.Cosmos.ChainId
 			tctx.TxHash = unLockEvent.TxHash
 			tctx.State = 1
-			tctx.Fee = 0
+			tctx.Fee = unLockEvent.Fee
 			tctx.TT = uint32(tt)
 			tctx.Height = chainInfo.Height
 			tctx.FChain = unLockEvent.FChainId
@@ -176,6 +183,9 @@ func (srv *Service) saveCosmosCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Chai
 					tctx.Transfer = tctransfer
 					break
 				}
+			}
+			if !srv.IsMonitorChain(tctx.FChain) {
+				continue
 			}
 			err = srv.dao.TxInsertTChainTxAndCache(tx, tctx)
 			if err != nil {
@@ -209,6 +219,9 @@ func (srv *Service) getCosmosCCMLockEventByBlockNumber(height uint64) ([]*model.
 			for _, tx := range res.Txs {
 				for _, e := range tx.TxResult.Events {
 					if e.Type == _cosmos_crosschainlock {
+						if len(e.Attributes) < 7 {
+							continue
+						}
 						tchainId, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 32)
 						value, _ := hex.DecodeString(string(e.Attributes[6].Value))
 						ccmLockEvents = append(ccmLockEvents, &model.ECCMLockEvent{
@@ -220,11 +233,15 @@ func (srv *Service) getCosmosCCMLockEventByBlockNumber(height uint64) ([]*model.
 							Contract: string(e.Attributes[4].Value),
 							Height: height,
 							Value: value,
-							Fee: uint64(tx.TxResult.GasUsed),
+							Fee: client.GetGas(tx.Tx),
 						})
 					} else if e.Type == _cosmos_lock {
+						if len(e.Attributes) < 6 {
+							continue
+						}
 						tchainId, _ := strconv.ParseUint(string(e.Attributes[1].Value), 10, 32)
-						amount, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 64)
+						//amount, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 64)
+						amount, _ := new(big.Int).SetString(string(e.Attributes[5].Value), 10)
 						lockEvents = append(lockEvents, &model.LockEvent{
 							Method: _cosmos_lock,
 							TxHash: strings.ToLower(tx.Hash.String()),
@@ -265,6 +282,9 @@ func (srv *Service) getCosmosCCMUnlockEventByBlockNumber(height uint64) ([]*mode
 			for _, tx := range res.Txs {
 				for _, e := range tx.TxResult.Events {
 					if e.Type == _cosmos_crosschainunlock {
+						if len(e.Attributes) < 4 {
+							continue
+						}
 						fchainId, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 32)
 						ccmUnlockEvents = append(ccmUnlockEvents, &model.ECCMUnlockEvent{
 							Method: _cosmos_crosschainunlock,
@@ -273,10 +293,14 @@ func (srv *Service) getCosmosCCMUnlockEventByBlockNumber(height uint64) ([]*mode
 							FChainId: uint32(fchainId),
 							Contract: string(e.Attributes[3].Value),
 							Height: height,
-							Fee: uint64(tx.TxResult.GasUsed),
+							Fee: client.GetGas(tx.Tx),
 						})
 					} else if e.Type == _cosmos_unlock {
-						amount, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 64)
+						if len(e.Attributes) < 3 {
+							continue
+						}
+						//amount, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 64)
+						amount, _ := new(big.Int).SetString(string(e.Attributes[2].Value), 10)
 						unlockEvents = append(unlockEvents, &model.UnlockEvent{
 							Method: _cosmos_unlock,
 							TxHash: strings.ToLower(tx.Hash.String()),
@@ -292,157 +316,3 @@ func (srv *Service) getCosmosCCMUnlockEventByBlockNumber(height uint64) ([]*mode
 
 	return ccmUnlockEvents, unlockEvents, nil
 }
-
-/*
-func (srv *Service) getCosmosCCMEventByBlockNumber(height uint64) ([]*model.ECCMLockEvent, []*model.ECCMUnlockEvent, error) {
-	client := srv.cosmosClient.Client
-	ccmLockEvents := make([]*model.ECCMLockEvent, 0)
-	ccmUnlockEvents := make([]*model.ECCMUnlockEvent, 0)
-	{
-		query := fmt.Sprintf("tx.height=%d AND make_from_cosmos_proof.status='1'", height)
-		res, err := client.TxSearch(query, false, 1, 100, "asc")
-		if err != nil {
-			return ccmLockEvents, ccmUnlockEvents, err
-		}
-		if res.TotalCount != 0 {
-			pages := ((res.TotalCount - 1) / 100) + 1
-			for p := 1; p <= pages; p ++ {
-				if p > 1 {
-					res, err = client.TxSearch(query, false, p, 100, "asc")
-					if err != nil {
-						return ccmLockEvents, ccmUnlockEvents, err
-					}
-				}
-				for _, tx := range res.Txs {
-					for _, e := range tx.TxResult.Events {
-						if e.Type == _cosmos_crosschainlock {
-							tchainId, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 32)
-							value, _ := hex.DecodeString(string(e.Attributes[6].Value))
-							ccmLockEvents = append(ccmLockEvents, &model.ECCMLockEvent{
-								Method: _cosmos_crosschainlock,
-								Txid: string(e.Attributes[1].Value),
-								TxHash: tx.Hash.String(),
-								User: string(e.Attributes[3].Value),
-								Tchain: uint32(tchainId),
-								Contract: string(e.Attributes[4].Value),
-								Height: height,
-								Value: value,
-							})
-						}
-					}
-				}
-			}
-		}
-	}
-	{
-		query := fmt.Sprintf("tx.height=%d AND verify_to_cosmos_proof.status='1'", height)
-		res, err := client.TxSearch(query, false, 1, 100, "asc")
-		if err != nil {
-			return ccmLockEvents, ccmUnlockEvents, err
-		}
-		if res.TotalCount != 0 {
-			pages := ((res.TotalCount - 1) / 100) + 1
-			for p := 1; p <= pages; p ++ {
-				if p > 1 {
-					res, err = client.TxSearch(query, false, p, 100, "asc")
-					if err != nil {
-						return ccmLockEvents, ccmUnlockEvents, err
-					}
-				}
-				for _, tx := range res.Txs {
-					for _, e := range tx.TxResult.Events {
-						if e.Type == _cosmos_crosschainunlock {
-							fchainId, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 32)
-							ccmUnlockEvents = append(ccmUnlockEvents, &model.ECCMUnlockEvent{
-								Method: _cosmos_crosschainunlock,
-								TxHash: tx.Hash.String(),
-								RTxHash: string(e.Attributes[0].Value),
-								FChainId: uint32(fchainId),
-								Contract: string(e.Attributes[3].Value),
-								Height: height,
-							})
-						}
-					}
-				}
-			}
-		}
-	}
-	return ccmLockEvents, ccmUnlockEvents, nil
-}
-
-func (srv *Service) getCosmosProxyEventByBlockNumber(height uint64) ([]*model.LockEvent, []*model.UnlockEvent, error) {
-	client := srv.cosmosClient.Client
-	lockEvents := make([]*model.LockEvent, 0)
-	unlockEvents := make([]*model.UnlockEvent, 0)
-	{
-		query := fmt.Sprintf("tx.height=%d AND lock.status='1'", height)
-		res, err := client.TxSearch(query, false, 1, 100, "asc")
-		if err != nil {
-			return lockEvents, unlockEvents, err
-		}
-		if res.TotalCount != 0 {
-			pages := ((res.TotalCount - 1) / 100) + 1
-			for p := 1; p <= pages; p ++ {
-				if p > 1 {
-					res, err = client.TxSearch(query, false, p, 100, "asc")
-					if err != nil {
-						return lockEvents, unlockEvents, err
-					}
-				}
-				for _, tx := range res.Txs {
-					for _, e := range tx.TxResult.Events {
-						if e.Type == _cosmos_lock {
-							fromassethash, _ := hex.DecodeString(string(e.Attributes[0].Value))
-							tchainId, _ := strconv.ParseUint(string(e.Attributes[1].Value), 10, 32)
-							amount, _ := strconv.ParseUint(string(e.Attributes[5].Value), 10, 32)
-							lockEvents = append(lockEvents, &model.LockEvent{
-								Method: _cosmos_lock,
-								TxHash: tx.Hash.String(),
-								FromAddress: string(e.Attributes[3].Value),
-								FromAssetHash: string(fromassethash),
-								ToChainId: uint32(tchainId),
-								ToAssetHash: string(e.Attributes[2].Value),
-								ToAddress: string(e.Attributes[4].Value),
-								Amount: amount,
-							})
-						}
-					}
-				}
-			}
-		}
-	}
-	{
-		query := fmt.Sprintf("tx.height=%d AND unlock.status='1'", height)
-		res, err := client.TxSearch(query, false, 1, 100, "asc")
-		if err != nil {
-			return lockEvents, unlockEvents, err
-		}
-		if res.TotalCount != 0 {
-			pages := ((res.TotalCount - 1) / 100) + 1
-			for p := 1; p <= pages; p ++ {
-				if p > 1 {
-					res, err = client.TxSearch(query, false, p, 100, "asc")
-					if err != nil {
-						return lockEvents, unlockEvents, err
-					}
-				}
-				for _, tx := range res.Txs {
-					for _, e := range tx.TxResult.Events {
-						if e.Type == _cosmos_unlock {
-							amount, _ := strconv.ParseUint(string(e.Attributes[2].Value), 10, 32)
-							unlockEvents = append(unlockEvents, &model.UnlockEvent{
-								Method: _cosmos_unlock,
-								TxHash: tx.Hash.String(),
-								ToAssetHash: string(e.Attributes[0].Value),
-								ToAddress: string(e.Attributes[1].Value),
-								Amount: amount,
-							})
-						}
-					}
-				}
-			}
-		}
-	}
-	return lockEvents, unlockEvents, nil
-}
-*/

@@ -19,9 +19,11 @@ package service
 
 import (
 	"encoding/hex"
+	"fmt"
 	cosmos_types "github.com/cosmos/cosmos-sdk/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/joeqian10/neo-gogogo/helper"
+	ontcommon "github.com/ontio/ontology/common"
 	"github.com/polynetwork/explorer/internal/common"
 	"github.com/polynetwork/explorer/internal/conf"
 	"github.com/polynetwork/explorer/internal/ctx"
@@ -30,8 +32,10 @@ import (
 	"github.com/polynetwork/explorer/internal/model"
 	restclient "github.com/polynetwork/explorer/internal/server/restful/client"
 	"github.com/polynetwork/explorer/internal/server/rpc/client"
-	ontcommon "github.com/ontio/ontology/common"
 	"github.com/shopspring/decimal"
+	"math/big"
+	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -46,6 +50,8 @@ type Service struct {
 	bitcoinClient  *restclient.BTCTools
 	cosmosClient   *client.CosmosClient
 	chain          []*model.ChainInfo
+	tokens         []*model.CrossChainToken
+	coinPrice      map[string]float64
 }
 
 func New(c *conf.Config) (s *Service) {
@@ -59,6 +65,8 @@ func New(c *conf.Config) (s *Service) {
 		bitcoinClient:  restclient.NewBtcTools(c),
 		cosmosClient:   client.NewCosmosClient(c),
 		chain: make([]*model.ChainInfo, 0),
+		tokens: make([]*model.CrossChainToken, 0),
+		coinPrice: make(map[string]float64, 0),
 	}
 	return s
 }
@@ -74,40 +82,103 @@ func (s *Service) Close() {
 	s.ethClient.Close()
 }
 
-func (exp *Service) GetChainInfos() []*model.ChainInfo {
+func (exp *Service) GetChainInfos() ([]*model.ChainInfo,[]*model.CrossChainToken, error) {
 	// get all chains
 	chainInfos, err := exp.dao.SelectAllChainInfos()
 	if err != nil {
-		panic( err)
+		return nil, nil, err
 	}
 	if chainInfos == nil {
-		panic("GetExplorerInfo: can't get AllChainInfos")
+		return nil, nil, fmt.Errorf("GetExplorerInfo: can't get AllChainInfos")
 	}
 
 	// get all tokens and contracts
+	allTokens := make([]*model.ChainToken, 0)
 	for _, chainInfo := range chainInfos {
 		chainContracts, err := exp.dao.SelectContractById(chainInfo.Id)
 		if err != nil {
-			panic(err)
+			return nil, nil, err
 		}
 		chainInfo.Contracts = chainContracts
 
 		chainTokens, err := exp.dao.SelectTokenById(chainInfo.Id)
 		if err != nil {
-			panic(err)
+			return nil, nil, err
 		}
 		chainInfo.Tokens = chainTokens
+		allTokens = append(allTokens, chainTokens...)
 	}
-	return chainInfos
+	//
+	crosschainTokens := make([]*model.CrossChainToken, 0)
+	for _, token := range allTokens {
+		exist := false
+		for _, crosschainToken := range crosschainTokens {
+			if token.Token == crosschainToken.Name {
+				crosschainToken.Tokens = append(crosschainToken.Tokens, token)
+				exist = true
+				break
+			}
+		}
+		if exist == false {
+			crosschainToken := &model.CrossChainToken{
+				Name: token.Token,
+				Tokens: make([]*model.ChainToken ,0),
+			}
+			crosschainToken.Tokens = append(crosschainToken.Tokens, token)
+			crosschainTokens = append(crosschainTokens, crosschainToken)
+		}
+	}
+	return chainInfos, crosschainTokens, nil
+}
+
+func (exp *Service) updateCoinPrice() {
+	//
+	coins := make([]string, 0)
+	for _, item := range exp.tokens {
+		coins = append(coins, item.Name)
+	}
+	coinPrice := exp.getCoinPrice(coins)
+	if coinPrice == nil {
+		return
+	}
+	exp.coinPrice = coinPrice
+}
+
+func (exp *Service) UpdateCoinPrice() {
+	now := time.Now()
+	nowUnix := uint32(now.Unix())
+	end := (nowUnix / 60)
+	if end % exp.c.Server.AssetStatisticTimeslot != 0 {
+		return
+	}
+	log.Infof("do update coin price at time: %s", now.Format("2006-01-02 15:04:05"))
+	exp.updateCoinPrice()
 }
 
 func (exp *Service) Start(context *ctx.Context) {
 	exp.CheckChains(context)
-	t := time.NewTicker(10 * time.Second)
+	exp.updateCoinPrice()
+	//exp.Statistic()
+
+	for {
+		exp.Start1(context)
+	}
+}
+
+func (exp *Service) Start1(context *ctx.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("service start, recover info: %s", string(debug.Stack()))
+		}
+	}()
+	t := time.NewTicker(60 * time.Second)
 	for {
 		select {
 		case <-t.C:
 			exp.CheckChains(context)
+			exp.UpdateCoinPrice()
+			exp.Statistic()
+			exp.CheckLog()
 		case <-context.Context.Done():
 			log.Infof("stop service start routine!")
 			return
@@ -116,11 +187,49 @@ func (exp *Service) Start(context *ctx.Context) {
 }
 
 func (exp *Service) CheckChains(context *ctx.Context) {
-	chainInfoNew := exp.GetChainInfos()
+	chainInfoNew, crossChainTokenNew, err := exp.GetChainInfos()
+	if err != nil {
+		return
+	}
 	chainInfoOld := exp.chain
+	tokensOld := exp.tokens
 	exp.chain = chainInfoNew
+	exp.tokens = crossChainTokenNew
 	if exp.c.Server.Master == 0 {
 		return
+	}
+	for _, tokenNew := range crossChainTokenNew {
+		exist := false
+		for _, tokenOld := range tokensOld {
+			if tokenOld.Name == tokenNew.Name {
+				exist = true
+				break
+			}
+		}
+		if exist == true {
+			continue
+		}
+		err := exp.dao.InsertAssetStatistic(tokenNew.Name)
+		if err != nil {
+			log.Errorf("InsertAssetStatistic err: %s", err.Error())
+		}
+	}
+	allOldTokens := make(map[string]bool, 0)
+	for _, tokenOld := range tokensOld {
+		for _, token := range tokenOld.Tokens {
+			allOldTokens[token.Hash] = true
+		}
+	}
+	for _, tokenNew := range crossChainTokenNew {
+		for _, token := range tokenNew.Tokens {
+			_, ok := allOldTokens[token.Hash]
+			if !ok {
+				err := exp.dao.InsertTransferStatistic(token.Hash)
+				if err != nil {
+					log.Errorf("InsertTransferStatistic err: %s", err.Error())
+				}
+			}
+		}
 	}
 	for _, chainNew := range chainInfoNew {
 		exist := false
@@ -149,6 +258,23 @@ func (exp *Service) CheckChains(context *ctx.Context) {
 	}
 }
 
+func (exp *Service) Statistic() {
+	if exp.c.Server.Master == 0 {
+		return
+	}
+	exp.DoAssetStatistic()
+	exp.DoTransferStatistic()
+}
+
+func (exp *Service) CheckLog() {
+	isNeedNewFile := log.CheckIfNeedNewFile()
+	if isNeedNewFile {
+		log.Infof("new log file!")
+		log.ClosePrintLog()
+		log.InitLog(int(conf.DefConfig.Server.LogLevel), "../log/")
+	}
+}
+
 func (exp *Service) TxType2Name(ttype uint32) string {
 	return "cross chain transfer"
 }
@@ -160,6 +286,11 @@ func (exp *Service) GetChain(chainId uint32) *model.ChainInfo {
 		}
 	}
 	return nil
+}
+
+func (exp *Service) IsMonitorChain(chainId uint32) bool {
+	chain := exp.GetChain(chainId)
+	return chain != nil
 }
 
 func (exp *Service) ChainId2Name(chainId uint32) string {
@@ -182,7 +313,20 @@ func (exp *Service) AssetInfo(tokenHash string) (string, string) {
 	return "unknow token", "unknow token"
 }
 
-func (exp *Service) GetToken(tokenHash string) (*model.ChainToken) {
+func (exp *Service) GetToken(chainId uint32, tokenHash string) (*model.ChainToken) {
+	chainInfo := exp.GetChain(chainId)
+	if chainInfo == nil {
+		return nil
+	}
+	for _, token := range chainInfo.Tokens {
+		if token.Hash == tokenHash {
+			return token
+		}
+	}
+	return nil
+}
+
+func (exp *Service) GetToken1(tokenHash string) (*model.ChainToken) {
 	for _, chainInfo := range exp.chain {
 		for _, token := range chainInfo.Tokens {
 			if token.Hash == tokenHash {
@@ -208,6 +352,17 @@ func (exp *Service) SearchToken(name string, chainId uint32) (*model.ChainToken)
 	return nil
 }
 
+func (exp *Service) GetTokenPrecision(name string) uint64 {
+	for _, chainInfo := range exp.chain {
+		for _, token := range chainInfo.Tokens {
+			if token.Token == name {
+				return token.Precision
+			}
+		}
+	}
+	return 0
+}
+
 func (exp *Service) Hash2Address(chainId uint32, value string) string {
 	if chainId == common.CHAIN_ETH {
 		addr := ethcommon.HexToAddress(value)
@@ -226,34 +381,77 @@ func (exp *Service) Hash2Address(chainId uint32, value string) string {
 		value = common.HexStringReverse(value)
 		addr, _ := ontcommon.AddressFromHexString(value)
 		return addr.ToBase58()
+	} else if chainId == common.CHAIN_BSC {
+		addr := ethcommon.HexToAddress(value)
+		return strings.ToLower(addr.String()[2:])
+	} else if chainId == common.CHAIN_HECO {
+		addr := ethcommon.HexToAddress(value)
+		return strings.ToLower(addr.String()[2:])
+	} else if chainId == common.CHAIN_O3 {
+		addr := ethcommon.HexToAddress(value)
+		return strings.ToLower(addr.String()[2:])
+	} else if chainId == common.CHAIN_OK {
+		addr := ethcommon.HexToAddress(value)
+		return strings.ToLower(addr.String()[2:])
 	}
 	return value
 }
 
-func (exp *Service) FormatAmount(precision uint64, amount uint64) string {
-	precision_new := decimal.New(int64(precision), 0)
-	amount_new := decimal.New(int64(amount), 0)
-	return amount_new.Div(precision_new).String()
+func (exp *Service) FormatAmount(precision uint64, amount *big.Int) string {
+	amount_new := decimal.NewFromBigInt(amount, 0)
+	precision_new := decimal.NewFromBigInt(new(big.Int).SetInt64(int64(precision)), 0)
+	result := amount_new.Div(precision_new)
+	return result.String()
 }
 
 func (exp *Service) FormatFee(chain uint32, fee uint64) string {
 	if chain == common.CHAIN_BTC {
 		precision_new := decimal.New(int64(100000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
-		return fee_new.Div(precision_new).String()
+		return fee_new.Div(precision_new).String() + " BTC"
 	} else if chain == common.CHAIN_ONT {
 		precision_new := decimal.New(int64(1000000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
-		return fee_new.Div(precision_new).String()
+		return fee_new.Div(precision_new).String() + " ONG"
 	} else if chain == common.CHAIN_ETH {
 		precision_new := decimal.New(int64(1000000000000000000), 0)
 		fee_new := decimal.New(int64(fee), 0)
-		return fee_new.Div(precision_new).String()
+		return fee_new.Div(precision_new).String() + " ETH"
+	} else if chain == common.CHAIN_NEO {
+		precision_new := decimal.New(int64(100000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		fee := fee_new.Div(precision_new).BigInt().Int64()
+		return strconv.FormatInt(fee, 10) + " GAS"
+	} else if chain == common.CHAIN_COSMOS {
+		precision_new := decimal.New(int64(100000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		return fee_new.Div(precision_new).String() + " SWTH"
+	} else if chain == common.CHAIN_BSC {
+		precision_new := decimal.New(int64(1000000000000000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		return fee_new.Div(precision_new).String() + " BNB"
+	} else if chain == common.CHAIN_O3 {
+		precision_new := decimal.New(int64(1000000000000000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		return fee_new.Div(precision_new).String() + " O3"
+	}  else if chain == common.CHAIN_HECO {
+		precision_new := decimal.New(int64(1000000000000000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		return fee_new.Div(precision_new).String() + " HT"
+	} else if chain == common.CHAIN_OK {
+		precision_new := decimal.New(int64(1000000000000000000), 0)
+		fee_new := decimal.New(int64(fee), 0)
+		return fee_new.Div(precision_new).String() + " OKT"
 	} else {
 		precision_new := decimal.New(int64(1), 0)
 		fee_new := decimal.New(int64(fee), 0)
 		return fee_new.Div(precision_new).String()
 	}
+}
+
+func (exp *Service) Precent(a uint64, b uint64) string {
+	c := float64(a) / float64(b)
+	return fmt.Sprintf("%.2f%%", c * 100)
 }
 
 func (exp *Service) DayOfTime(t uint32) uint32 {

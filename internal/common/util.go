@@ -28,13 +28,19 @@ const (
 	CHAIN_BTC    = 1
 	CHAIN_ETH    = 2
 	CHAIN_ONT    =  3
+	//CHAIN_NEO    = 5
 	CHAIN_NEO    = 4
 	CHAIN_COSMOS = 5
+	CHAIN_BSC = 6
+	CHAIN_HECO = 7
+	CHAIN_O3 = 10
+	CHAIN_OK = 12
 )
 
 const (
 	BTC_TOKEN_NAME = "btc"
 	BTC_TOKEN_HASH = "0000000000000000000000000000000000000011"
+	UNISWAP_NAME = "UNI_V2_ETH_WBTC"
 )
 
 func HexString2Base58Address(address string) string {

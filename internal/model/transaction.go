@@ -17,10 +17,11 @@
 
 package model
 
+import "math/big"
+
 type ChainInfo struct {
 	Id        uint32           `gorm:"column:id"`
 	Name      string           `gorm:"column:xname"`
-	Url       string           `gorm:"column:url"`
 	XType     uint32           `gorm:"column:xtype"`
 	Height    uint32           `gorm:"column:height"`
 	In        uint32           `gorm:"column:txin"`
@@ -44,6 +45,22 @@ type ChainToken struct {
 	Desc      string `json:"desc" gorm:"column:desc"`
 }
 
+type CrossChainToken struct {
+	Name      string             `json:"name"`
+	Tokens    []*ChainToken      `json:"tokens"`
+}
+
+type CrossChainTxStatus struct {
+	Id        uint32    `json:"chainid"`
+	TT        uint32    `json:"timestamp"`
+	TxNumber  uint32    `json:"txnumber"`
+}
+
+type CrossChainAddressNum struct {
+	Id        uint32    `json:"chainid"`
+	AddNum    uint32    `json:"addressnumber"`
+}
+
 type FChainTx struct {
 	Chain        uint32 `json:"chainid" gorm:"column:chain_id"`
 	TxHash       string `json:"txhash" gorm:"column:txhash"`
@@ -64,7 +81,7 @@ type FChainTransfer struct {
 	Asset        string `json:"asset" gorm:"column:asset"`
 	From         string `json:"from" gorm:"column:xfrom"`
 	To           string `json:"to" gorm:"column:xto"`
-	Amount       uint64 `json:"amount" gorm:"column:amount"`
+	Amount       *big.Int `json:"amount" gorm:"column:amount"`
 	ToChain      uint32 `json:"tochainid" gorm:"column:tochainid"`
 	ToAsset      string `json:"toasset" gorm:"column:toasset"`
 	ToUser       string `json:"touser" gorm:"column:touser"`
@@ -101,51 +118,70 @@ type TChainTransfer struct {
 	Asset        string `json:"asset" gorm:"column:asset"`
 	From         string `json:"from" gorm:"column:xfrom"`
 	To           string `json:"to" gorm:"column:xto"`
-	Amount       uint64 `json:"amount" gorm:"column:amount"`
+	Amount       *big.Int `json:"amount" gorm:"column:amount"`
 }
 
 type TokenTx struct {
 	TxHash       string `json:"txhash"`
 	From         string  `json:"from"`
 	To           string  `json:"to"`
-	Amount       uint64  `json:"amount"`
+	Amount       *big.Int  `json:"amount"`
 	TT           uint32   `json:"timestamp"`
 	Height       uint32  `json:"blockheight"`
 	Direct       uint32  `json:"direct"`
 }
-
 
 type AddressTx struct {
 	TxHash       string `json:"txhash"`
 	From         string  `json:"from"`
 	To           string  `json:"to"`
 	Asset        string  `json:"asset"`
-	Amount       uint64  `json:"amount"`
+	Amount       *big.Int  `json:"amount"`
 	TT           uint32   `json:"timestamp"`
 	Height       uint32  `json:"blockheight"`
 	Direct       uint32  `json:"direct"`
 }
 
-func (FChainTx) TableName() string {
-	return "fchain_tx"
+type AssetStatistic struct {
+	Name         string    `json:"name"`
+	Addressnum   uint32    `json:"addressnumber"`
+	Amount       *big.Int    	`json:"amount"`
+	Amount_btc   *big.Int    `json:"amount_btc"`
+	Amount_usd   *big.Int    `json:"amount_usd"`
+	TxNum        uint32    `json:"txnumber"`
+	LatestUpdate uint32    `json:"latestupdate"`
 }
 
-func (MChainTx) TableName() string {
-	return "mchain_tx"
+type AssetAddressNum struct {
+	Name      string    `json:"asset"`
+	AddNum    uint32    `json:"addressnumber"`
 }
 
-func (TChainTx) TableName() string {
-	return "tchain_tx"
+type AssetTxInfo struct {
+	Name      string    `json:"asset"`
+	Amount    *big.Int    `json:"amount"`
+	TxNum     uint32    `json:"txnumber"`
 }
 
-func (ChainContract) TableName() string {
-	return "chain_contract"
+type TransferStatistic struct {
+	Hash         string    `json:"asset"`
+	Amount       *big.Int    	`json:"amount"`
+	LatestIn     uint32    `json:"latestin"`
+	LatestOut    uint32    `json:"latestout"`
 }
 
-func (ChainToken) TableName() string {
-	return "chain_token"
+type TransferTxInfo struct {
+	Hash   string    `json:"asset"`
+	Amount   *big.Int    `json:"amount"`
+	TT   uint32
 }
 
-func (ChainInfo) TableName() string {
-	return "chain_info"
+type AllTransferStatistic struct {
+	Hash       string    `json:"asset"`
+	Token       string      `json:"token"`
+	Amount     *big.Int    `json:"amount"`
+	Chain      uint32      `json:"chainid"`
+	Name       string      `json:"name"`
+	SourceName string      `json:"source_name"`
+	SourceChain uint32     `json:"source_chain"`
 }

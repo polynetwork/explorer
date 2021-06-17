@@ -111,8 +111,17 @@ func (srv *Service) saveAllianceCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Ch
 				if contractMethod != "makeProof" && contractMethod != "btcTxToRelay" {
 					continue
 				}
+				if len(states) < 4 {
+					continue
+				}
 				fchainid := uint32(states[1].(float64))
 				tchainid := uint32(states[2].(float64))
+				if !srv.IsMonitorChain(fchainid){
+					continue
+				}
+				if !srv.IsMonitorChain(tchainid) {
+					continue
+				}
 				mctx := &model.MChainTx{}
 				mctx.Chain = chainInfo.Id
 				mctx.TxHash = event.TxHash
@@ -123,6 +132,9 @@ func (srv *Service) saveAllianceCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Ch
 				mctx.FChain = fchainid
 				mctx.TChain = tchainid
 				if tchainid == srv.c.Bitcoin.ChainId {
+					if len(states) < 5 {
+						continue
+					}
 					if fchainid == srv.c.Ethereum.ChainId || fchainid == srv.c.Cosmos.ChainId {
 						mctx.FTxHash = states[4].(string)
 						mctx.Key = states[3].(string)
@@ -131,7 +143,7 @@ func (srv *Service) saveAllianceCrossTxsByHeight(tx *sql.Tx, chainInfo *model.Ch
 						mctx.Key = states[3].(string)
 					}
 				} else {
-					if fchainid == srv.c.Ethereum.ChainId || fchainid == srv.c.Cosmos.ChainId {
+					if fchainid == srv.c.Ethereum.ChainId || fchainid == srv.c.Cosmos.ChainId || fchainid == common.CHAIN_BSC || fchainid == common.CHAIN_HECO || fchainid == common.CHAIN_O3 || fchainid == common.CHAIN_OK {
 						mctx.FTxHash = states[3].(string)
 					} else {
 						mctx.FTxHash = common.HexStringReverse(states[3].(string))

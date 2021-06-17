@@ -21,33 +21,36 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/polynetwork/explorer/internal/common"
+	"github.com/polynetwork/explorer/internal/log"
 	"github.com/polynetwork/explorer/internal/model"
+	"math/big"
 )
 
 const (
-	_insertTChainTx                 = "insert into tchain_tx(chain_id, txhash, state, tt, fee, height, fchain, contract, rtxhash) values (?,?,?,?,?,?,?,?,?)"
-	_insertTChainTransfer          = "insert into tchain_transfer(txhash, asset, xfrom, xto, amount) values(?,?,?,?,?)"
-	_insertFChainTx                 = "insert into fchain_tx(chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam) values (?,?,?,?,?,?,?,?,?,?,?)"
-	_insertFChainTransfer          = "insert into fchain_transfer(txhash, asset, xfrom, xto, amount, tochainid, toasset, touser) values (?,?,?,?,?,?,?,?)"
-	_insertMChainTx                 = "insert into mchain_tx(chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey) values (?,?,?,?,?,?,?,?,?,?)"
+	_insertTChainTx                 = "insert into tchain_tx(chain_id, txhash, state, tt, fee, height, fchain, contract, rtxhash) values (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `height` = VALUES(`height`)"
+	_insertTChainTransfer          = "insert into tchain_transfer(txhash, chain_id, tt, asset, xfrom, xto, amount) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `tt` = VALUES(`tt`)"
+	_insertFChainTx                 = "insert into fchain_tx(chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam) values (?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `height` = VALUES(`height`)"
+	_insertFChainTransfer          = "insert into fchain_transfer(txhash, chain_id, tt, asset, xfrom, xto, amount, tochainid, toasset, touser) values (?,?,?,?,?,?,?,?,?,?)ON DUPLICATE KEY UPDATE `tt` = VALUES(`tt`)"
+	_insertMChainTx                 = "insert into mchain_tx(chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey) values (?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `tt` = VALUES(`tt`)"
 	_selectMChainTxCount            = "select count(*) from mchain_tx"
-	_selectMChainTxByLimit          = "select A.chain_id, A.txhash, case when B.txhash is null OR C.txhash is null THEN 0 ELSE 1 END as state, A.tt, A.fee, A.height, A.fchain, A.tchain from mchain_tx A left join tchain_tx B on A.txhash = B.rtxhash left join fchain_tx C on A.ftxhash = C.txhash order by A.height desc limit ?,?;"
+	//_selectMChainTxByLimit          = "select A.chain_id, A.txhash, case when B.txhash is null OR C.txhash is null THEN 0 ELSE 1 END as state, A.tt, A.fee, A.height, A.fchain, A.tchain from mchain_tx A left join tchain_tx B on A.txhash = B.rtxhash left join fchain_tx C on A.ftxhash = C.txhash order by A.height desc limit ?,?;"
+	_selectMChainTxByLimit          = "select C.chain_id, C.txhash, case when D.txhash is null THEN 0 ELSE 1 END as state, C.tt, C.fee, C.height, C.fchain, C.tchain from ((select B.chain_id, B.txhash, B.tt, B.fee, B.height, B.fchain, B.tchain from (select txhash, chain_Id, tt, height, tchain from fchain_tx order by tt desc limit ?, ?) A LEFT JOIN mchain_tx B ON B.ftxhash = A.txhash where B.txhash is not null) union all (select A.chain_id, case when A.chain_id = ? then A.xkey else A.txhash end as txhash, A.tt, A.fee, A.height, A.chain_id as fchain, A.tchain from (select txhash, xkey, chain_Id, tt, fee, height, tchain from fchain_tx order by tt desc limit ?, ?) A LEFT JOIN mchain_tx B ON B.ftxhash = A.txhash where B.txhash is null)) C LEFT JOIN tchain_tx D on C.txhash = D.rtxhash order by C.tt desc"
 	_selectMChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey from mchain_tx where txhash = ?"
-	_selectMChainTxByFHash          = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey from mchain_tx where ftxhash = ?"
+	_selectMChainTxByFHash          = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain, xkey from mchain_tx where ftxhash = ? and fchain = ?"
 	_selectFChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam from fchain_tx where case when chain_id = ? then xkey = ? else txhash = ? end"
-	_selectFChainTxByTime           = "select unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from fchain_tx where chain_id = ? and tt > ? and tt < ? group by chain_id,days order by days desc"
-	_selectFChainTransferByHash    = "select txhash, asset, xfrom, xto, amount, tochainid, toasset, touser from fchain_transfer where txhash = ?" // TODO
+	_selectFChainTxByHash1           = "select chain_id, txhash, state, tt, fee, height, xuser, tchain, contract, xkey, xparam from fchain_tx where txhash = ? and chain_id = ?"
+	_selectFChainTxByTime           = "select chain_id, unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from fchain_tx where tt > ? and tt < ? group by chain_id, days order by chain_id, days desc"
+	_selectFChainTransferByHash    = "select txhash, asset, xfrom, xto, amount, tochainid, toasset, touser from fchain_transfer where txhash = ?"
 	_selectTChainTxByHash           = "select chain_id, txhash, state, tt, fee, height, fchain, contract,rtxhash from tchain_tx where txhash = ?"
 	_selectTChainTxByMHash          = "select chain_id, txhash, state, tt, fee, height, fchain, contract,rtxhash from tchain_tx where rtxhash = ?"
-	_selectTChainTxByTime           = "select unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from tchain_tx where chain_id = ? and tt > ? and tt < ? group by chain_id,days order by days desc"
+	_selectTChainTxByTime           = "select chain_id, unix_timestamp(FROM_UNIXTIME(tt,'%Y%m%d')) days, count(*) from tchain_tx where tt > ? and tt < ? group by chain_id, days order by chain_id, days desc"
 	_selectTChainTransferByHash    = "select txhash, asset, xfrom, xto, amount from tchain_transfer where txhash = ?"
-	_selectChainAddresses           = "select count(distinct a) from (select distinct xfrom as a from fchain_transfer aa left join fchain_tx bb on aa.txhash = bb.txhash where bb.chain_id = ? union all select distinct xto as a from tchain_transfer aa left join tchain_tx bb on aa.txhash = bb.txhash where bb.chain_id = ?) c"
-	_selectChainInfoById            = "select xname, id, url, xtype, height, txin, txout from chain_info where id = ?"
-	_selectAllChainInfos            = "select xname, id, url, xtype, height, txin, txout from chain_info order by id"
+	_selectChainAddresses           = "select chain_id, count(distinct addr) from (select chain_id,xfrom as addr from fchain_transfer union all select chain_id,xto as addr from tchain_transfer) c group by c.chain_id"
+	_selectAllChainInfos            = "select xname, id, xtype, height, txin, txout from chain_info order by id"
 	_selectContractById             = "select id, contract from chain_contract where id = ?"
 	_selectTokenById                = "select id, xtoken, hash, xname, xtype, xprecision, xdesc from chain_token where id = ?"
 	_selectTokenCount               = "select count(distinct xtoken) from chain_token"
-	_updateChainInfoById            = "update chain_info set xname = ?, url = ?, height = ?, txin = ?, txout = ? where id = ?"
+	_updateChainInfoById            = "update chain_info set xname = ?, height = ?, txin = ?, txout = ? where id = ?"
 	_selectAllianceTx               = "select chain_id, txhash, state, tt, fee, height, fchain, ftxhash, tchain,xkey from mchain_tx where (tchain = ? or fchain = ?) and height > ? order by height"
 	_selectBitcoinUnconfirmTx       = "select txhash from tchain_tx where chain_id = ? and tt = ?"
 	_updateBitcoinConfirmTx         = "update tchain_tx set tt = ?, height = ?, state = 1, fee = ? where txhash = ?"
@@ -58,7 +61,20 @@ const (
 	_selectAddressTxTotal           = "select sum(cnt) from (select count(*) as cnt from fchain_transfer a left join fchain_tx b on a.txhash = b.txhash where a.xfrom = ? and b.chain_id = ? union all select count(*) as cnt from tchain_transfer c left join tchain_tx d on c.txhash = d.txhash where c.xto = ? and d.chain_id = ?) t"
 	_insertPolyValidator            = "insert into poly_validators(height, validators) values(?,?)"
 	_selectPolyValidator            = "select height, validators from poly_validators order by height desc limit 1"
-)
+	_insertAssetStatistic           = "insert into asset_statistic(xname, addressnum, amount,amount_btc, amount_usd, txnum, latestupdate) values (?,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE txnum=txnum"
+	_selectAssetAddressNum          =  "select token, count(distinct addr) as addrNum from (select B.xtoken as token, A.xfrom as addr from fchain_transfer as A inner join chain_token as B on A.asset = B.hash union all select D.xtoken as token, C.xto as addr from tchain_transfer as C inner join chain_token as D on C.asset = D.hash) E group by E.token"
+	_selectAssetTxInfo              =  "select B.xtoken, amount from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? order by B.xtoken"
+	_updateStatistic                =  "update asset_statistic set addressnum = ?, amount = amount + ?, amount_btc = amount_btc + ?, amount_usd = amount_usd + ?, txnum = txnum + ?, latestupdate = ? where xname = ? and latestupdate = ?"
+	_selectAssetStatistic           =  "select xname, addressnum, amount, amount_btc, amount_usd, txnum, latestupdate from asset_statistic where latestupdate < ? order by amount_usd desc"
+	_selectAssetHistory             =  "select A.amount from fchain_transfer as A inner join chain_token as B on A.asset = B.hash where A.tt >= ? and A.tt < ? and B.xtoken = ?"
+	_insertTransferStatistic        =  "insert into transfer_statistic(asset, amount, latestin, latestout) values(?, 0, 0, 0) ON DUPLICATE KEY UPDATE amount=amount"
+	_selectTransferStatistic        =  "select asset, amount, latestin, latestout from transfer_statistic"
+	_selectTransferOutHistory       =  "select amount, tt from fchain_transfer where asset = ? and tt > ?"
+	_selectTransferInHistory        =  "select amount, tt from tchain_transfer where asset = ? and tt > ?"
+	_updateTransferStatistic        =  "update transfer_statistic set amount = ?, latestin = ?, latestout = ? where asset = ?"
+	_selectAllTransferStatistic     =  "select A.asset, A.amount, B.xtoken, B.id, B.xname, D.xname, D.id  from transfer_statistic A left join chain_token B on A.asset = B.hash left join chain_token_bind C on A.asset = C.hash_src left join chain_token D on C.hash_dest = D.hash"
+	_selectAllTransferStatisticInChain     =  "select A.asset, A.amount, B.xtoken, B.id, B.xname, D.xname, D.id  from transfer_statistic A left join chain_token B on A.asset = B.hash left join chain_token_bind C on A.asset = C.hash_src left join chain_token D on C.hash_dest = D.hash where B.id = ?"
+	)
 
 func (d *Dao) InsertTChainTx(t *model.TChainTx) (err error) {
 	if _, err = d.db.Exec(_insertTChainTx, t.Chain, t.TxHash, t.State, t.TT, t.Fee, t.Height, t.FChain, t.Contract, t.RTxHash); err != nil {
@@ -87,7 +103,7 @@ func (d *Dao) TxInsertTChainTx(tx *sql.Tx, t *model.TChainTx) (err error) {
 	}
 	if t.Transfer != nil && t.Transfer.TxHash != "" {
 		transfer := t.Transfer
-		if _, err = tx.Exec(_insertTChainTransfer, transfer.TxHash, transfer.Asset, transfer.From, transfer.To, transfer.Amount); err != nil {
+		if _, err = tx.Exec(_insertTChainTransfer, transfer.TxHash, t.Chain, t.TT, transfer.Asset, transfer.From, transfer.To, transfer.Amount.String()); err != nil {
 			return
 		}
 	}
@@ -100,7 +116,7 @@ func (d *Dao) TxInsertFChainTx(tx *sql.Tx, f *model.FChainTx) (err error) {
 	}
 	if f.Transfer != nil && f.Transfer.TxHash != "" {
 		transfer := f.Transfer
-		if _, err = tx.Exec(_insertFChainTransfer, transfer.TxHash,transfer.Asset,transfer.From,transfer.To,transfer.Amount,transfer.ToChain,transfer.ToAsset,transfer.ToUser); err != nil {
+		if _, err = tx.Exec(_insertFChainTransfer,transfer.TxHash,f.Chain, f.TT,transfer.Asset,transfer.From,transfer.To,transfer.Amount.String(), transfer.ToChain,transfer.ToAsset,transfer.ToUser); err != nil {
 			return
 		}
 	}
@@ -114,17 +130,6 @@ func (d *Dao) TxInsertMChainTx(tx *sql.Tx, m *model.MChainTx) (err error) {
 	return
 }
 
-func (d *Dao) SelectChainInfoById(id uint32) (res *model.ChainInfo, err error) {
-	res = new(model.ChainInfo)
-	row := d.db.QueryRow(_selectChainInfoById, id)
-	if err = row.Scan(&res.Name, &res.Id, &res.Url, &res.XType, &res.Height, &res.In, &res.Out); err != nil {
-		if err == sql.ErrNoRows {
-			err = nil
-		}
-		res = nil
-	}
-	return
-}
 
 func (d *Dao) SelectAllChainInfos() (c []*model.ChainInfo, err error) {
 	var rows *sql.Rows
@@ -134,7 +139,7 @@ func (d *Dao) SelectAllChainInfos() (c []*model.ChainInfo, err error) {
 	defer rows.Close()
 	for rows.Next() {
 		r := new(model.ChainInfo)
-		if err = rows.Scan(&r.Name, &r.Id, &r.Url, &r.XType, &r.Height, &r.In, &r.Out); err != nil {
+		if err = rows.Scan(&r.Name, &r.Id, &r.XType, &r.Height, &r.In, &r.Out); err != nil {
 			c = nil
 			return
 		}
@@ -216,9 +221,9 @@ func (d *Dao) SelectMChainTxByHash(hash string) (res *model.MChainTx, err error)
 	return
 }
 
-func (d *Dao) SelectMChainTxByFHash(hash string) (res *model.MChainTx, err error) {
+func (d *Dao) SelectMChainTxByFHash(hash string, chain uint32) (res *model.MChainTx, err error) {
 	res = new(model.MChainTx)
-	row := d.db.QueryRow(_selectMChainTxByFHash, hash)
+	row := d.db.QueryRow(_selectMChainTxByFHash, hash, chain)
 	if err = row.Scan(&res.Chain, &res.TxHash, &res.State, &res.TT, &res.Fee, &res.Height, &res.FChain, &res.FTxHash, &res.TChain, &res.Key); err != nil {
 		if err == sql.ErrNoRows {
 			err = nil
@@ -228,9 +233,9 @@ func (d *Dao) SelectMChainTxByFHash(hash string) (res *model.MChainTx, err error
 	return
 }
 
-func (d *Dao) SelectMChainTxByLimit(start int, limit int) (res []*model.MChainTx, err error) {
+func (d *Dao) SelectMChainTxByLimit(start int, limit int, chain uint32) (res []*model.MChainTx, err error) {
 	var rows *sql.Rows
-	if rows, err = d.db.Query(_selectMChainTxByLimit, start, limit); err != nil {
+	if rows, err = d.db.Query(_selectMChainTxByLimit, start, limit, chain, start, limit); err != nil {
 		return
 	}
 	defer rows.Close()
@@ -246,11 +251,11 @@ func (d *Dao) SelectMChainTxByLimit(start int, limit int) (res []*model.MChainTx
 	return
 }
 
-func (d *Dao) SelectFChainTxByHash(hash string, chain uint32) (res *model.FChainTx, err error) {
+func (d *Dao) SelectFChainTxByHash(hash string) (res *model.FChainTx, err error) {
 	res = new(model.FChainTx)
 	res.Transfer = new(model.FChainTransfer)
 	{
-		row := d.db.QueryRow(_selectFChainTxByHash, chain, hash, hash)
+		row := d.db.QueryRow(_selectFChainTxByHash, common.CHAIN_ETH, hash, hash)
 		if err = row.Scan(&res.Chain, &res.TxHash, &res.State, &res.TT, &res.Fee, &res.Height, &res.User, &res.TChain, &res.Contract, &res.Key, &res.Param); err != nil {
 			if err == sql.ErrNoRows {
 				err = nil
@@ -260,26 +265,54 @@ func (d *Dao) SelectFChainTxByHash(hash string, chain uint32) (res *model.FChain
 		}
 	}
 	{
-		row := d.db.QueryRow(_selectFChainTransferByHash, hash)
-		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &res.Transfer.Amount, &res.Transfer.ToChain, &res.Transfer.ToAsset, &res.Transfer.ToUser); err != nil {
+		row := d.db.QueryRow(_selectFChainTransferByHash, res.TxHash)
+		var amount string
+		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount, &res.Transfer.ToChain, &res.Transfer.ToAsset, &res.Transfer.ToUser); err != nil {
 			if err == sql.ErrNoRows {
 				err = nil
 			}
 		}
+		res.Transfer.Amount, _ = new(big.Int).SetString(amount, 10)
 	}
 	return
 }
 
-func (d *Dao) SelectFChainTxByTime(chainId uint32, start uint32, end uint32) (res []*model.CrossChainTxStatus, err error) {
+func (d *Dao) SelectFChainTxByHash1(hash string, chain uint32) (res *model.FChainTx, err error) {
+	res = new(model.FChainTx)
+	res.Transfer = new(model.FChainTransfer)
+	{
+		row := d.db.QueryRow(_selectFChainTxByHash1, hash, chain)
+		if err = row.Scan(&res.Chain, &res.TxHash, &res.State, &res.TT, &res.Fee, &res.Height, &res.User, &res.TChain, &res.Contract, &res.Key, &res.Param); err != nil {
+			if err == sql.ErrNoRows {
+				err = nil
+			}
+			res = nil
+			return
+		}
+	}
+	{
+		row := d.db.QueryRow(_selectFChainTransferByHash, res.TxHash)
+		var amount string
+		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount, &res.Transfer.ToChain, &res.Transfer.ToAsset, &res.Transfer.ToUser); err != nil {
+			if err == sql.ErrNoRows {
+				err = nil
+			}
+		}
+		res.Transfer.Amount, _ = new(big.Int).SetString(amount, 10)
+	}
+	return
+}
+
+func (d *Dao) SelectFChainTxByTime(start uint32, end uint32) (res []*model.CrossChainTxStatus, err error) {
 	var rows *sql.Rows
-	if rows, err  = d.db.Query(_selectFChainTxByTime, chainId, start, end); err != nil {
+	if rows, err  = d.db.Query(_selectFChainTxByTime, start, end); err != nil {
 		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		r := new(model.CrossChainTxStatus)
-		if err = rows.Scan(&r.TT, &r.TxNumber); err != nil {
+		if err = rows.Scan(&r.Id, &r.TT, &r.TxNumber); err != nil {
 			res = nil
 			return
 		}
@@ -303,11 +336,13 @@ func (d *Dao) SelectTChainTxByHash(hash string) (res *model.TChainTx, err error)
 		}
 		{
 			row := d.db.QueryRow(_selectTChainTransferByHash, hash)
-			if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &res.Transfer.Amount); err != nil {
+			var amount string
+			if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount); err != nil {
 				if err == sql.ErrNoRows {
 					err = nil
 				}
 			}
+			res.Transfer.Amount, _ = new(big.Int).SetString(amount, 10)
 		}
 	}
 	return
@@ -328,25 +363,27 @@ func (d *Dao) SelectTChainTxByMHash(hash string) (res *model.TChainTx, err error
 	}
 	{
 		row := d.db.QueryRow(_selectTChainTransferByHash, res.TxHash)
-		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &res.Transfer.Amount); err != nil {
+		var amount string
+		if err = row.Scan(&res.Transfer.TxHash, &res.Transfer.Asset, &res.Transfer.From, &res.Transfer.To, &amount); err != nil {
 			if err == sql.ErrNoRows {
 				err = nil
 			}
 		}
+		res.Transfer.Amount, _ = new(big.Int).SetString(amount, 10)
 	}
 	return
 }
 
-func (d *Dao) SelectTChainTxByTime(chainId uint32, start uint32, end uint32) (res []*model.CrossChainTxStatus, err error) {
+func (d *Dao) SelectTChainTxByTime(start uint32, end uint32) (res []*model.CrossChainTxStatus, err error) {
 	var rows *sql.Rows
-	if rows, err  = d.db.Query(_selectTChainTxByTime, chainId, start, end); err != nil {
+	if rows, err  = d.db.Query(_selectTChainTxByTime, start, end); err != nil {
 		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		r := new(model.CrossChainTxStatus)
-		if err = rows.Scan(&r.TT, &r.TxNumber); err != nil {
+		if err = rows.Scan(&r.Id, &r.TT, &r.TxNumber); err != nil {
 			res = nil
 			return
 		}
@@ -356,29 +393,29 @@ func (d *Dao) SelectTChainTxByTime(chainId uint32, start uint32, end uint32) (re
 	return
 }
 
-/*
-func (d *Dao) UpdateChainInfoById(c *model.ChainInfo) (err error) {
-	if _, err = d.db.Exec(_updateChainInfoById, c.Name, c.Url, c.Height, c.In, c.Out, c.Id); err != nil {
-		return
-	}
-	return
-}
-*/
 
 func (d *Dao) TxUpdateChainInfoById(tx *sql.Tx, c *model.ChainInfo) (err error) {
-	if _, err = tx.Exec(_updateChainInfoById, c.Name, c.Url, c.Height, c.In, c.Out, c.Id); err != nil {
+	if _, err = tx.Exec(_updateChainInfoById, c.Name, c.Height, c.In, c.Out, c.Id); err != nil {
 		return
 	}
 	return
 }
 
-func (d *Dao) SelectChainAddresses(chainId uint32) (uint32, error) {
-	row := d.db.QueryRow(_selectChainAddresses, chainId, chainId)
-	var counter uint32
-	if err := row.Scan(&counter); err != nil {
-		return 0, err
+func (d *Dao) SelectChainAddressNum() (res []*model.CrossChainAddressNum, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectChainAddresses); err != nil {
+		return
 	}
-	return counter, nil
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.CrossChainAddressNum)
+		if err = rows.Scan(&r.Id, &r.AddNum); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
 }
 
 /*
@@ -432,11 +469,11 @@ func (d *Dao) SelectBitcoinTxUnConfirm(id uint32) (res []string, err error) {
 	return txhashs, nil
 }
 
-func (d *Dao) UpdateBitcoinTxConfirmed(txhash string, height uint32, tt uint32, gas uint64, toaddress string, amount uint64) (err error) {
+func (d *Dao) UpdateBitcoinTxConfirmed(txhash string, height uint32, tt uint32, gas uint64, toaddress string, amount *big.Int) (err error) {
 	if _, err = d.db.Exec(_updateBitcoinConfirmTx, tt, height, gas, txhash); err != nil {
 		return
 	}
-	if _, err = d.db.Exec(_updateBitcoinConfirmTransfer, toaddress, amount, txhash); err != nil {
+	if _, err = d.db.Exec(_updateBitcoinConfirmTransfer, toaddress, amount.String(), txhash); err != nil {
 		return
 	}
 	return
@@ -450,10 +487,12 @@ func (d *Dao) SelectTokenTxList(token string, start uint32, end uint32) (res []*
 	defer rows.Close()
 	for rows.Next() {
 		r := new(model.TokenTx)
-		if err = rows.Scan(&r.TxHash, &r.From, &r.To, &r.Amount, &r.Height, &r.TT, &r.Direct); err != nil {
+		var amount string
+		if err = rows.Scan(&r.TxHash, &r.From, &r.To, &amount, &r.Height, &r.TT, &r.Direct); err != nil {
 			rows = nil
 			return
 		}
+		r.Amount, _ = new(big.Int).SetString(amount, 10)
 		res = append(res, r)
 	}
 	err = rows.Err()
@@ -480,10 +519,12 @@ func (d *Dao) SelectAddressTxList(chainId uint32, addr string, start uint32, end
 	defer rows.Close()
 	for rows.Next() {
 		r := new(model.AddressTx)
-		if err = rows.Scan(&r.TxHash, &r.From, &r.To, &r.Asset, &r.Amount, &r.Height, &r.TT, &r.Direct); err != nil {
+		var amount string
+		if err = rows.Scan(&r.TxHash, &r.From, &r.To, &r.Asset, &amount, &r.Height, &r.TT, &r.Direct); err != nil {
 			rows = nil
 			return
 		}
+		r.Amount, _ = new(big.Int).SetString(amount, 10)
 		res = append(res, r)
 	}
 	err = rows.Err()
@@ -530,4 +571,331 @@ func (d *Dao) SelectPolyValidator() (validator []string, err error) {
 		return nil, err
 	}
 	return validator, nil
+}
+
+func (d *Dao) InsertAssetStatistic(name string) (err error) {
+	if _, err = d.db.Exec(_insertAssetStatistic, name); err != nil {
+		return
+	}
+	return
+}
+
+func (d *Dao) SelectAssetAddressNum()  (res []*model.AssetAddressNum, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAssetAddressNum); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.AssetAddressNum)
+		if err = rows.Scan(&r.Name, &r.AddNum); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+type AssetTxInfo2 struct {
+	Name string
+	Amount string
+}
+
+func (d *Dao) SelectAssetTxInfo1(start uint32, end uint32)  (res []*AssetTxInfo2, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAssetTxInfo, start, end); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(AssetTxInfo2)
+		if err = rows.Scan(&r.Name, &r.Amount); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectAssetTxInfo(start uint32, end uint32)  (res []*model.AssetTxInfo, err error) {
+	oriRes, err := d.SelectAssetTxInfo1(start, end)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	r := new(model.AssetTxInfo)
+	r.Name = ""
+	r.Amount = big.NewInt(0)
+	r.TxNum = 0
+	for _, item := range oriRes {
+		if item.Name != r.Name {
+			if r.Name != "" && r.TxNum != 0 {
+				res = append(res, r)
+				r = new(model.AssetTxInfo)
+				r.Name = item.Name
+				r.Amount = big.NewInt(0)
+				r.TxNum = 0
+			}
+		}
+		r.Name = item.Name
+		r.TxNum ++
+
+		amount := big.NewInt(0)
+		amount, ok := new(big.Int).SetString(item.Amount, 10)
+		if !ok {
+			amount = big.NewInt(0)
+		}
+		r.Amount = new(big.Int).Add(r.Amount, amount)
+	}
+	if r.Name != "" && r.TxNum != 0 {
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) UpdateAssetStatistics(assetStatistics []*model.AssetStatistic, tt uint32) (err error) {
+	for _, statistic := range assetStatistics {
+		if statistic.LatestUpdate == 1 {
+			continue
+		}
+		err := d.UpdateAssetStatistic(statistic, tt)
+		if err != nil {
+			log.Errorf("UpdateAssetStatistic err: %s", err.Error())
+		}
+	}
+	return nil
+}
+
+func (d *Dao) UpdateAssetStatistic(assetStatistic *model.AssetStatistic, tt uint32) (err error) {
+	if _, err = d.db.Exec(_updateStatistic, assetStatistic.Addressnum, assetStatistic.Amount.Int64(), assetStatistic.Amount_btc.Int64(), assetStatistic.Amount_usd.Int64(),assetStatistic.TxNum, tt, assetStatistic.Name, assetStatistic.LatestUpdate); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *Dao) SelectAssetStatistic(tt uint32) (res []*model.AssetStatistic, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAssetStatistic, tt); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.AssetStatistic)
+		Amount := int64(0)
+		Amount_btc := int64(0)
+		Amount_usd := int64(0)
+		if err = rows.Scan(&r.Name, &r.Addressnum, &Amount, &Amount_btc, &Amount_usd, &r.TxNum, &r.LatestUpdate); err != nil {
+			res = nil
+			return
+		}
+		r.Amount = new(big.Int).SetInt64(Amount)
+		r.Amount_btc = new(big.Int).SetInt64(Amount_btc)
+		r.Amount_usd = new(big.Int).SetInt64(Amount_usd)
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+type AssetTxInfo1 struct {
+	Amount  string
+}
+
+func (d *Dao) SelectAssetHistory1(start uint32, end uint32, name string) (res []*AssetTxInfo1, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectAssetHistory, start, end, name); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(AssetTxInfo1)
+		if err = rows.Scan(&r.Amount); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectAssetHistory(start uint32, end uint32, name string)  (res *model.AssetTxInfo, err error) {
+	res = new(model.AssetTxInfo)
+	res.Name = name
+	res.Amount = big.NewInt(0)
+	oriRes, err := d.SelectAssetHistory1(start, end, name)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	for _, item := range oriRes {
+		amount := big.NewInt(0)
+		amount, ok := new(big.Int).SetString(item.Amount, 10)
+		if !ok {
+			amount = big.NewInt(0)
+		}
+		res.Amount = new(big.Int).Add(res.Amount, amount)
+		res.TxNum ++
+	}
+	return
+}
+
+
+func (d *Dao) InsertTransferStatistic(hash string) (err error) {
+	if _, err = d.db.Exec(_insertTransferStatistic, hash); err != nil {
+		return
+	}
+	return
+}
+
+func (d *Dao) SelectTransferStatistic() (res []*model.TransferStatistic, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectTransferStatistic); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.TransferStatistic)
+		Amount := int64(0)
+		if err = rows.Scan(&r.Hash, &Amount, &r.LatestIn, &r.LatestOut); err != nil {
+			res = nil
+			return
+		}
+		r.Amount = new(big.Int).SetInt64(Amount)
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+
+type TransferTxInfo1 struct {
+	Amount  string
+	TT   uint32
+}
+
+func (d *Dao) SelectTransferOutHistory1(start uint32, hash string) (res []*TransferTxInfo1, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectTransferOutHistory, hash, start); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(TransferTxInfo1)
+		if err = rows.Scan(&r.Amount, &r.TT); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectTransferOutHistory(start uint32, hash string)  (res *model.TransferTxInfo, err error) {
+	res = new(model.TransferTxInfo)
+	res.Hash = hash
+	res.Amount = big.NewInt(0)
+	res.TT = start
+	oriRes, err := d.SelectTransferOutHistory1(start, hash)
+	if err == sql.ErrNoRows {
+		return res, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	tt := start
+	for _, item := range oriRes {
+		amount := big.NewInt(0)
+		amount, ok := new(big.Int).SetString(item.Amount, 10)
+		if !ok {
+			amount = big.NewInt(0)
+		}
+		res.Amount = new(big.Int).Add(res.Amount, amount)
+		if item.TT > tt {
+			tt = item.TT
+		}
+	}
+	res.TT = tt
+	return
+}
+
+func (d *Dao) SelectTransferInHistory1(start uint32, hash string) (res []*TransferTxInfo1, err error) {
+	var rows *sql.Rows
+	if rows, err = d.db.Query(_selectTransferInHistory, hash, start); err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(TransferTxInfo1)
+		if err = rows.Scan(&r.Amount, &r.TT); err != nil {
+			res = nil
+			return
+		}
+		res = append(res, r)
+	}
+	return res, nil
+}
+
+func (d *Dao) SelectTransferInHistory(start uint32, hash string)  (res *model.TransferTxInfo, err error) {
+	res = new(model.TransferTxInfo)
+	res.Hash = hash
+	res.Amount = big.NewInt(0)
+	res.TT = start
+	oriRes, err := d.SelectTransferInHistory1(start, hash)
+	if err == sql.ErrNoRows {
+		return res, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	tt := start
+	for _, item := range oriRes {
+		amount := big.NewInt(0)
+		amount, ok := new(big.Int).SetString(item.Amount, 10)
+		if !ok {
+			amount = big.NewInt(0)
+		}
+		res.Amount = new(big.Int).Add(res.Amount, amount)
+		if item.TT > tt {
+			tt = item.TT
+		}
+	}
+	res.TT = tt
+	return
+}
+
+func (d *Dao) UpdateTransferStatistic(transferStatistic *model.TransferStatistic) (err error) {
+	if _, err = d.db.Exec(_updateTransferStatistic, transferStatistic.Amount.Int64(), transferStatistic.LatestIn, transferStatistic.LatestOut, transferStatistic.Hash); err != nil {
+		return err
+	}
+	return nil
+}
+
+
+func (d *Dao) SelectAllTransferStatistic(chainid int) (res []*model.AllTransferStatistic, err error) {
+	var rows *sql.Rows
+	if chainid == 0 {
+		if rows, err = d.db.Query(_selectAllTransferStatistic); err != nil {
+			return
+		}
+	} else {
+		if rows, err = d.db.Query(_selectAllTransferStatisticInChain, chainid); err != nil {
+			return
+		}
+	}
+	defer rows.Close()
+	for rows.Next() {
+		r := new(model.AllTransferStatistic)
+		Amount := int64(0)
+		if err = rows.Scan(&r.Hash, &Amount, &r.Token, &r.Chain, &r.Name, &r.SourceName, &r.SourceChain); err != nil {
+			res = nil
+			return
+		}
+		r.Amount = new(big.Int).SetInt64(Amount)
+		res = append(res, r)
+	}
+	return res, nil
 }

@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"fmt"
-	"github.com/polynetwork/explorer/internal/model"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -87,12 +86,3 @@ func Post(addr string, params string) (string, error) {
 	return "", err
 }
 
-func TestOutputCrossChainTxStatus(t *testing.T) {
-	exp := New(nil)
-	status := make([]*model.CrossChainTxStatus, 0)
-	status = append(status, &model.CrossChainTxStatus{
-		TT : 1593014400,
-		TxNumber: 7,
-	})
-	exp.outputCrossChainTxStatus(status, 1592274867, 1593534067, 7)
-}

@@ -13,7 +13,7 @@
   "mysql": {
     "url": "127.0.0.1:3306",
     "user": "root",
-    "pwd": "root",
+    "pwd": "Onchain@2019",
     "dbName": "cross_chain_explorer"
   },
   "server": {
@@ -29,32 +29,32 @@
   },
   "coinmarketcap": {
     "url": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/",
-    "appkey": "8efe5156-8b37-4c77-8e1d-a140c97bf466"
+    "appkey": "8c175886-3aec-4276-8961-1f0ce06ab69e"
   },
   "neo": {
     "name": "neo",
     "chainId": 4,
-    "rawurl": ["http://seed10.ngd.network:11332","http://seed9.ngd.network:11332"],
+    "rawurl": ["http://seed1.ngd.network:20332"],
     "block_duration": 1
   },
   "ontology": {
     "name": "ontology",
     "chainId": 3,
-    "rawurl": ["http://dappnode4.ont.io:20336","http://dappnode2.ont.io:20336"],
+    "rawurl": ["http://polaris4.ont.io:20336"],
     "block_duration": 1
   },
   "ethereum": {
     "name": "eth",
     "chainId": 2,
-    "rawurl": ["http://onto-eth.ont.io:10331"],
+    "rawurl": ["https://ropsten.infura.io/v3/1ba5f3635395470e9a3f19ba7a852144"],
     "block_duration": 1,
-    "proxy": "a4a0919ba5a2a89cb2eb1cb4018a16841b2e943f",
+    "proxy": "d8ae73e06552e270340b63a8bcabf9277a1aac99",
     "btcx": "92705a16815a3d1aec3ce9cc273c5aa302961fcc"
   },
   "alliance": {
     "name": "poly",
     "chainId": 0,
-    "rawurl": ["http://13.92.155.62:20336"],
+    "rawurl": ["http://beta1.poly.network:21336"],
     "block_duration": 1
   },
   "btc": {
@@ -66,9 +66,9 @@
     "block_duration": 1
   },
   "cosmos": {
-    "name": "switcheo",
+    "name": "cosmos",
     "chainId": 5,
-    "rawurl": ["http://175.41.151.35:26657", "http://54.255.5.46:26657"],
+    "rawurl": ["http://40.115.182.238:26657"],
     "block_duration": 1
   }
 }

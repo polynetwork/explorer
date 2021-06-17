@@ -32,6 +32,7 @@ type Config struct {
 	Redis    *Redis    `json:"redis"`
 	Mysql    *MySQL    `json:"mysql"`
 	Server   *Server   `json:"server"`
+	CoinMarketCap  *CoinMarketCap  `json:"coinmarketcap"`
 	Neo      *Neo      `json:"neo"`
 	Ontology *Ontology `json:"ontology"`
 	Ethereum *Ethereum `json:"ethereum"`
@@ -66,6 +67,14 @@ type Server struct {
 	HttpMaxConnections int    `json:"http_max_connections"`
 	HttpCertPath       string `json:"http_cert_path"`
 	HttpKeyPath        string `json:"http_key_path"`
+	AssetStatisticTimeslot  uint32 `json:"asset_statistic_time_slot"`
+	TransferStatisticTimeslot  uint32 `json:"transfer_statistic_time_slot"`
+	LogLevel           uint32 `json:"loglevel"`
+}
+
+type CoinMarketCap struct {
+	Url      string `json:"url"`
+	AppKey   string `json:"appkey"`
 }
 
 type Bitcoin struct {
